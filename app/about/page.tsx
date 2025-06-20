@@ -72,35 +72,23 @@ export default function AboutPage() {
       <div className="max-w-6xl mx-auto">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <Badge className="mb-4">About Modern Store</Badge>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">Redefining Modern Shopping</h1>
+          <Badge className="mb-4">About Us</Badge>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">Redefining Shopping</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Since 2018, we've been on a mission to bring you the finest products that enhance your modern lifestyle.
-            From carefully curated collections to exceptional customer service, we're here to make your shopping
-            experience extraordinary.
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           </p>
         </div>
 
-        {/* Story Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           <div>
             <h2 className="text-3xl font-bold mb-6">Our Story</h2>
             <div className="space-y-4 text-gray-600">
               <p>
-                Modern Store began as a simple idea: what if shopping for premium products could be both effortless and
-                enjoyable? Our founder, Sarah Johnson, noticed a gap in the market for a retailer that truly understood
-                the needs of modern consumers.
-              </p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.              </p>
               <p>
-                Starting from a small warehouse in Brooklyn, we've grown into a global brand that serves customers in
-                over 50 countries. But our core mission remains the same – to provide exceptional products backed by
-                unparalleled customer service.
-              </p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.              </p>
               <p>
-                Today, we're proud to be a trusted partner for thousands of customers who rely on us for everything from
-                everyday essentials to special occasion purchases. Every product in our collection is carefully selected
-                to meet our high standards for quality, design, and value.
-              </p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.              </p>
             </div>
           </div>
           <div>
@@ -119,7 +107,7 @@ export default function AboutPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Our Values</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              These core values guide everything we do, from product selection to customer service.
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -144,7 +132,7 @@ export default function AboutPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Meet Our Team</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              The passionate people behind Modern Store who work every day to bring you the best shopping experience.
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -172,7 +160,7 @@ export default function AboutPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Our Journey</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Key milestones in our growth from a startup to a global brand.
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
             </p>
           </div>
           <div className="space-y-8">
@@ -215,8 +203,7 @@ export default function AboutPage() {
         <div className="text-center bg-black text-white p-12 rounded-lg">
           <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
           <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-            Have questions about our story, want to partner with us, or just want to say hello? We'd love to hear from
-            you.
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a

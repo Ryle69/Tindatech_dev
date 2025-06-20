@@ -24,7 +24,7 @@ export function Header() {
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center space-x-2">
             <img src="/logo.svg" alt="Cheryll's Fashion Boutique Logo"/>
-            <span className="font-bold text-xl">Cheryll's Fashion Boutique</span>
+            {/*<span className="font-bold text-xl">Cheryll's Fashion Boutique</span>*/}
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
             {navigation.map((item) => (

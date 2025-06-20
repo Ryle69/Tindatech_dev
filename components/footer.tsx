@@ -94,7 +94,7 @@ export function Footer() {
         </div>
       </div>
       <div className="py-6 bg-[#D86304] mt-8 text-center text-sm text-black">
-      <p>&copy; 2024 Modern Store. All rights reserved.</p>
+      <p>&copy; 2000 Cheryll's Fashion Boutique. All rights reserved.</p>
     </div>
     </footer>
   )
