@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -11,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
-import { signup } from "./actions"
+import { register } from "./actions"
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -54,7 +53,7 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} action={register} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
@@ -91,7 +90,9 @@ export default function RegisterPage() {
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="email"
+                    name="email"
                     type="email"
+                    autoComplete="email"
                     placeholder="Enter your email"
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
@@ -107,7 +108,9 @@ export default function RegisterPage() {
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
                     placeholder="Create a password"
                     value={formData.password}
                     onChange={(e) => handleInputChange("password", e.target.value)}
@@ -132,8 +135,8 @@ export default function RegisterPage() {
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm your password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                    // value={formData.confirmPassword}
+                    // onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                     className="pl-10 pr-10"
                     required
                   />
@@ -179,7 +182,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <Button formAction={signup} type="submit" className="w-full">
+              <Button type="submit" className="w-full">
                 Create Account
               </Button>
             </form>
