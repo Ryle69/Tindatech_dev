@@ -15,50 +15,41 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <Link href="/" className="flex items-center justify-center space-x-2 mb-8">
-              <div className="h-10 w-10 bg-black rounded-md flex items-center justify-center">
-                <span className="text-white font-bold">CFB</span>
-              </div>
-              <span className="font-bold text-2xl">Cheryll's Fashion Boutique</span>
-            </Link>
-          </div>
-
-          <Card>
+          <Card className="bg-[#F7F1C5] border-none">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
-              <CardDescription className="text-center">Sign in to your account to continue shopping</CardDescription>
+              <CardTitle className="text-[32px] tracking-wider text-center font-mouseMemoirs text-[#69AB3C]">Welcome back</CardTitle>
+              <CardDescription className="text-center text-[#A2C078] font-rubik">Sign in to your account to continue shopping</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <form action={login} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-[#AB5005]">Email</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-[#AB5005]" />
                     <Input
                         id="email"
                         name="email"
                         type="email"
                         autoComplete="email"
                         placeholder="Enter your email"
-                        className="pl-10"
+                        className="pl-10 bg-[#F7F1C5]"
                         required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-[#AB5005]">Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-[#AB5005]" />
                     <Input
                         id="password"
                         name="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
-                        className="pl-10 pr-10"
+                        className="pl-10 pr-10 bg-[#F7F1C5]"
                         required
                     />
                     <button
@@ -66,7 +57,7 @@ export default function LoginPage() {
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword ? <EyeOff className="h-4 w-4 text-[#AB5005]" /> : <Eye className="h-4 w-4 text-[#AB5005]" />}
                     </button>
                   </div>
                 </div>
@@ -74,7 +65,7 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Checkbox id="remember" name="remember" />
-                    <Label htmlFor="remember" className="text-sm font-normal">
+                    <Label htmlFor="remember" className="text-sm font-normal text-[#AB5005]">
                       Remember me
                     </Label>
                   </div>
@@ -83,22 +74,22 @@ export default function LoginPage() {
                   </Link>
                 </div>
 
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full text-[#F7F1C5] bg-[#A2C078] hover:bg-[#69AB3C]">
                   Sign In
                 </Button>
               </form>
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <Separator className="w-full" />
+                  <Separator className="w-full bg-[#A2C078]" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                  <span className="bg-[#F7F1C5] px-2 text-[#A2C078]">Or continue with</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full bg-[#F7F1C5] border-[#A2C078] text-[#69AB3C] hover:bg-[#69AB3C] hover:border-[#69AB3C] hover:text-[#F7F1C5]">
                   <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                     <path
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -119,7 +110,7 @@ export default function LoginPage() {
                   </svg>
                   Google
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full bg-[#F7F1C5] border-[#A2C078] text-[#69AB3C] hover:bg-[#69AB3C] hover:border-[#69AB3C] hover:text-[#F7F1C5]">
                   <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
@@ -128,7 +119,7 @@ export default function LoginPage() {
               </div>
 
               <div className="text-center text-sm">
-                <span className="text-gray-600">Don't have an account? </span>
+                <span className="text-[#69AB3C]">Don't have an account? </span>
                 <Link href="/register" className="text-blue-600 hover:underline font-medium">
                   Sign up
                 </Link>
@@ -136,7 +127,7 @@ export default function LoginPage() {
             </CardContent>
           </Card>
 
-          <div className="text-center text-xs text-gray-500">
+          <div className="text-center text-xs text-[#69AB3C]">
             By signing in, you agree to our{" "}
             <Link href="/terms" className="hover:underline">
               Terms of Service

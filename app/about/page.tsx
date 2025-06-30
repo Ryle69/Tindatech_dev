@@ -127,7 +127,6 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Team Section */}
         <div className="mb-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Meet Our Team</h2>
@@ -155,7 +154,6 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Timeline Section */}
         <div className="mb-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Our Journey</h2>
@@ -177,7 +175,6 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Stats Section */}
         <div className="bg-gray-50 p-8 rounded-lg mb-16">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
             <div>
@@ -199,7 +196,6 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Contact Section */}
         <div className="text-center bg-black text-white p-12 rounded-lg">
           <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
           <p className="text-gray-300 mb-8 max-w-2xl mx-auto">

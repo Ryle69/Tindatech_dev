@@ -88,7 +88,6 @@ export default function FAQPage() {
           <p className="text-xl text-gray-600">Find answers to common questions about shopping with Modern Store</p>
         </div>
 
-        {/* FAQ Categories */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {categories.map((category, index) => (
             <Card key={index} className="text-center hover:shadow-md transition-shadow cursor-pointer">
@@ -103,7 +102,6 @@ export default function FAQPage() {
           ))}
         </div>
 
-        {/* FAQ Accordion */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Common Questions</h2>
           <Accordion type="single" collapsible className="w-full">
@@ -116,7 +114,6 @@ export default function FAQPage() {
           </Accordion>
         </div>
 
-        {/* Contact Support */}
         <div className="bg-gray-50 p-8 rounded-lg">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold mb-4">Still Need Help?</h2>

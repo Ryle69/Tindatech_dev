@@ -99,7 +99,6 @@ export default function StorefrontPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Filters Sidebar */}
         <div className="lg:col-span-1">
           <div className="bg-white p-6 rounded-lg border">
             <div className="flex items-center gap-2 mb-6">
@@ -152,7 +151,6 @@ export default function StorefrontPage() {
           </div>
         </div>
 
-        {/* Products Grid */}
         <div className="lg:col-span-3">
           <div className="flex justify-between items-center mb-6">
             <p className="text-gray-600">
