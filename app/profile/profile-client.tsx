@@ -1,4 +1,6 @@
 "use client"
+
+import { useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -7,9 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Edit, Package, ShoppingBag, Star, TrendingUp, Users, LogOut, Crown } from "lucide-react"
+import { Edit, Package, ShoppingBag, Star, TrendingUp, Users, LogOut, Crown, Save, Eye, EyeOff } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
 import Link from "next/link"
+import { updateProfile, updateNewsletterSubscription, updatePassword } from "./actions"
 
 interface UserProfile {
     id: number
@@ -25,14 +28,18 @@ interface UserProfile {
 interface ProfileClientProps {
     user: User
     userProfile: UserProfile | null
+    searchParams?: { success?: string; error?: string }
 }
 
-export default function ProfileClient({ user, userProfile }: ProfileClientProps) {
-    // Use actual user role from database, default to customer
+export default function ProfileClient({ user, userProfile, searchParams }: ProfileClientProps) {
+    const [isEditingProfile, setIsEditingProfile] = useState(false)
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+    const [showNewPassword, setShowNewPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
     const userRole = userProfile?.role || "customer"
     const isAdmin = userRole === "admin"
 
-    // Use real user data
     const displayName = userProfile
         ? `${userProfile.first_name} ${userProfile.last_name}`
         : user.email?.split("@")[0] || "User"
@@ -47,7 +54,6 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
             month: "long",
         })
 
-    // Sample data for demo
     const customerData = {
         name: displayName,
         email: user.email || "",
@@ -95,7 +101,19 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
     return (
         <div className="min-h-screen bg-gray-[#D7D2AE] p-4 md:p-6">
             <div className="mx-auto max-w-6xl space-y-6">
-                {/* Header with Sign Out */}
+                {/* Success/Error Messages */}
+                {searchParams?.success && (
+                    <div className="rounded-md bg-green-50 p-4">
+                        <p className="text-sm text-green-600">{decodeURIComponent(searchParams.success)}</p>
+                    </div>
+                )}
+
+                {searchParams?.error && (
+                    <div className="rounded-md bg-red-50 p-4">
+                        <p className="text-sm text-red-600">{decodeURIComponent(searchParams.error)}</p>
+                    </div>
+                )}
+
                 <div className="flex items-center justify-between rounded-lg bg-[#F7F1C5] p-4 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
@@ -165,20 +183,21 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                                 </div>
                                 <p className="text-muted-foreground text-[#a2c078]">{currentUser.email}</p>
                                 <p className="text-sm text-muted-foreground text-[#a2c078]">Member since {currentUser.joinDate}</p>
-                                <p className="text-xs text-muted-foreground text-[#a2c078]">
-                                    User ID: {user.id}
-                                </p>
+                                <p className="text-xs text-muted-foreground text-[#a2c078]">User ID: {user.id}</p>
                             </div>
 
-                            <Button variant="outline" className="gap-2 text-[#69ab3c] hover:text-[#69ab3c] bg-transparent">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsEditingProfile(!isEditingProfile)}
+                                className="gap-2 text-[#69ab3c] hover:text-[#69ab3c] bg-transparent"
+                            >
                                 <Edit className="h-4 w-4" />
-                                Edit Profile
+                                {isEditingProfile ? "Cancel Edit" : "Edit Profile"}
                             </Button>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Stats Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {isAdmin ? (
                         <>
@@ -290,32 +309,73 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                         <Card>
                             <CardHeader>
                                 <CardTitle>Personal Information</CardTitle>
-                                <CardDescription>Your account details from Supabase</CardDescription>
+                                <CardDescription>
+                                    {isEditingProfile ? "Update your account details" : "Your account details from Supabase"}
+                                </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="firstName">First Name</Label>
-                                        <Input id="firstName" defaultValue={userProfile?.first_name || ""} />
+                                {isEditingProfile ? (
+                                    <form action={updateProfile} className="space-y-4">
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="firstName">First Name *</Label>
+                                                <Input id="firstName" name="firstName" defaultValue={userProfile?.first_name || ""} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="lastName">Last Name *</Label>
+                                                <Input id="lastName" name="lastName" defaultValue={userProfile?.last_name || ""} required />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email">Email</Label>
+                                            <Input id="email" type="email" defaultValue={currentUser.email} disabled />
+                                            <p className="text-sm text-gray-600">Email cannot be changed from this page</p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="role">Role</Label>
+                                            <Input id="role" defaultValue={userProfile?.role || "customer"} disabled />
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <Button type="submit" className="gap-2">
+                                                <Save className="h-4 w-4" />
+                                                Save Changes
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => setIsEditingProfile(false)}
+                                                className="bg-transparent"
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="firstName">First Name</Label>
+                                                <Input id="firstName" defaultValue={userProfile?.first_name || ""} disabled />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="lastName">Last Name</Label>
+                                                <Input id="lastName" defaultValue={userProfile?.last_name || ""} disabled />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email">Email</Label>
+                                            <Input id="email" type="email" defaultValue={currentUser.email} disabled />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="role">Role</Label>
+                                            <Input id="role" defaultValue={userProfile?.role || "customer"} disabled />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="userId">User ID</Label>
+                                            <Input id="userId" defaultValue={user.id} disabled />
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="lastName">Last Name</Label>
-                                        <Input id="lastName" defaultValue={userProfile?.last_name || ""} />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input id="email" type="email" defaultValue={currentUser.email} disabled />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="role">Role</Label>
-                                    <Input id="role" defaultValue={userProfile?.role || "customer"} disabled />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="userId">User ID</Label>
-                                    <Input id="userId" defaultValue={user.id} disabled />
-                                </div>
-                                <Button>Save Changes</Button>
+                                )}
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -331,19 +391,25 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                             <CardContent>
                                 {isAdmin ? (
                                     <div className="space-y-4">
-                                        <p className="text-sm text-muted-foreground">Admin management features will be implemented here.</p>
+                                        <p className="text-sm text-muted-foreground">Quick access to admin features.</p>
                                         <div className="grid gap-2">
-                                            <Button variant="outline" className="justify-start bg-transparent">
-                                                <Users className="mr-2 h-4 w-4" />
-                                                View All Users
+                                            <Button variant="outline" className="justify-start bg-transparent" asChild>
+                                                <Link href="/admin/customers">
+                                                    <Users className="mr-2 h-4 w-4" />
+                                                    View All Customers
+                                                </Link>
                                             </Button>
-                                            <Button variant="outline" className="justify-start bg-transparent">
-                                                <Package className="mr-2 h-4 w-4" />
-                                                Manage Products
+                                            <Button variant="outline" className="justify-start bg-transparent" asChild>
+                                                <Link href="/admin/products">
+                                                    <Package className="mr-2 h-4 w-4" />
+                                                    Manage Products
+                                                </Link>
                                             </Button>
-                                            <Button variant="outline" className="justify-start bg-transparent">
-                                                <TrendingUp className="mr-2 h-4 w-4" />
-                                                View Analytics
+                                            <Button variant="outline" className="justify-start bg-transparent" asChild>
+                                                <Link href="/admin/analytics">
+                                                    <TrendingUp className="mr-2 h-4 w-4" />
+                                                    View Analytics
+                                                </Link>
                                             </Button>
                                         </div>
                                     </div>
@@ -361,13 +427,19 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                                 <CardDescription>Account settings and preferences</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="font-medium">Newsletter Subscription</p>
-                                        <p className="text-sm text-muted-foreground">Receive updates and promotions</p>
+                                <form action={updateNewsletterSubscription} className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-medium">Newsletter Subscription</p>
+                                            <p className="text-sm text-muted-foreground">Receive updates and promotions</p>
+                                        </div>
+                                        <Switch name="subscribeNewsletter" defaultChecked={userProfile?.subscribe_newsletter} />
                                     </div>
-                                    <Switch defaultChecked={userProfile?.subscribe_newsletter} />
-                                </div>
+                                    <Button type="submit" className="gap-2">
+                                        <Save className="h-4 w-4" />
+                                        Save Settings
+                                    </Button>
+                                </form>
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -379,7 +451,71 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                                 <CardDescription>Manage your account security</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-muted-foreground">Security features coming soon...</p>
+                                <form action={updatePassword} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="currentPassword">Current Password</Label>
+                                        <div className="relative">
+                                            <Input
+                                                id="currentPassword"
+                                                name="currentPassword"
+                                                type={showCurrentPassword ? "text" : "password"}
+                                                required
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                                            >
+                                                {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="newPassword">New Password</Label>
+                                        <div className="relative">
+                                            <Input
+                                                id="newPassword"
+                                                name="newPassword"
+                                                type={showNewPassword ? "text" : "password"}
+                                                minLength={6}
+                                                required
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                                            >
+                                                {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                                        <div className="relative">
+                                            <Input
+                                                id="confirmPassword"
+                                                name="confirmPassword"
+                                                type={showConfirmPassword ? "text" : "password"}
+                                                minLength={6}
+                                                required
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                                            >
+                                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <Button type="submit" className="gap-2">
+                                        <Save className="h-4 w-4" />
+                                        Update Password
+                                    </Button>
+                                </form>
                             </CardContent>
                         </Card>
                     </TabsContent>

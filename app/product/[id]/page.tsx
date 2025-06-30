@@ -13,7 +13,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [selectedSize, setSelectedSize] = useState("")
   const [selectedColor, setSelectedColor] = useState("")
 
-  // Mock product data - in real app, this would be fetched based on params.id
   const product = {
     id: params.id,
     name: "Premium Wireless Headphones",
@@ -40,7 +39,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   return (
     <div className="container px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Product Images */}
         <div className="space-y-4">
           <div className="relative">
             <Image
@@ -73,7 +71,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Product Details */}
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
@@ -101,7 +98,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
           <p className="text-gray-600 leading-relaxed">{product.description}</p>
 
-          {/* Product Options */}
           <div className="space-y-4">
             {product.colors.length > 0 && (
               <div>
@@ -153,7 +149,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="space-y-4">
             <Button size="lg" className="w-full">
               <ShoppingCart className="mr-2 h-5 w-5" />
@@ -171,7 +166,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Stock Status */}
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${product.inStock ? "bg-green-500" : "bg-red-500"}`} />
             <span className="text-sm font-medium">{product.inStock ? "In Stock" : "Out of Stock"}</span>
@@ -179,7 +173,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      {/* Product Details Tabs */}
       <div className="mt-16">
         <Tabs defaultValue="description" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
@@ -264,7 +257,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 </div>
               </div>
 
-              {/* Sample Reviews */}
               <div className="space-y-4">
                 <div className="border-b pb-4">
                   <div className="flex items-center gap-2 mb-2">

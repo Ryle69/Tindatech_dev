@@ -7,12 +7,10 @@ import { redirect } from "next/navigation"
 export async function createCategory(formData: FormData) {
     const supabase = await createClient()
 
-    // Extract form data
     const name = formData.get("name") as string
     const description = formData.get("description") as string
     const isActive = formData.get("isActive") === "on"
 
-    // Generate slug from name
     const slug = name
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")

@@ -13,7 +13,6 @@ export default function VisitPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
-          {/* Store Image */}
           <div>
             <Image
               src="/placeholder.svg?height=400&width=600"
@@ -24,7 +23,6 @@ export default function VisitPage() {
             />
           </div>
 
-          {/* Store Information */}
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -87,7 +85,6 @@ export default function VisitPage() {
           </div>
         </div>
 
-        {/* Getting Here Section */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Getting Here</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -144,7 +141,6 @@ export default function VisitPage() {
           </div>
         </div>
 
-        {/* Map Placeholder */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Find Us</h2>
           <div className="bg-gray-200 h-96 rounded-lg flex items-center justify-center">
@@ -156,7 +152,6 @@ export default function VisitPage() {
           </div>
         </div>
 
-        {/* Store Features */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Store Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

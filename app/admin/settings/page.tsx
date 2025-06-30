@@ -14,7 +14,6 @@ export default async function SettingsPage() {
 
   const { data: settings } = await supabase.from("StoreSettings").select("*").order("category", { ascending: true })
 
-  // Group settings by category
   const settingsByCategory =
       settings?.reduce((acc: any, setting: any) => {
         if (!acc[setting.category]) {
@@ -32,7 +31,6 @@ export default async function SettingsPage() {
         </div>
 
         <div className="space-y-6">
-          {/* General Settings */}
           {settingsByCategory.general && (
               <Card>
                 <CardHeader>
@@ -64,7 +62,6 @@ export default async function SettingsPage() {
               </Card>
           )}
 
-          {/* Financial Settings */}
           {settingsByCategory.financial && (
               <Card>
                 <CardHeader>
@@ -85,7 +82,6 @@ export default async function SettingsPage() {
               </Card>
           )}
 
-          {/* Shipping Settings */}
           {settingsByCategory.shipping && (
               <Card>
                 <CardHeader>
@@ -106,7 +102,6 @@ export default async function SettingsPage() {
               </Card>
           )}
 
-          {/* Inventory Settings */}
           {settingsByCategory.inventory && (
               <Card>
                 <CardHeader>

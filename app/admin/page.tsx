@@ -14,7 +14,6 @@ export default async function AdminDashboard() {
           <p className="text-gray-600">Welcome to your store management dashboard</p>
         </div>
 
-        {/* Stats Cards */}
         <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardContent className="p-6">
@@ -66,7 +65,6 @@ export default async function AdminDashboard() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Recent Orders */}
           <Card>
             <CardHeader>
               <CardTitle>Recent Orders</CardTitle>
@@ -100,7 +98,6 @@ export default async function AdminDashboard() {
             </CardContent>
           </Card>
 
-          {/* Low Stock Alert */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

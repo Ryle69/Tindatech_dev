@@ -7,7 +7,6 @@ import { redirect } from "next/navigation"
 export async function createProduct(formData: FormData) {
     const supabase = await createClient()
 
-    // Extract form data
     const name = formData.get("name") as string
     const description = formData.get("description") as string
     const price = Number.parseFloat(formData.get("price") as string)
@@ -21,7 +20,6 @@ export async function createProduct(formData: FormData) {
     const isActive = formData.get("isActive") === "on"
     const isFeatured = formData.get("isFeatured") === "on"
 
-    // Generate slug from name
     const slug = name
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
@@ -53,7 +51,6 @@ export async function createProduct(formData: FormData) {
         revalidatePath("/admin/products")
         redirect("/admin/products?success=Product created successfully")
     } catch (error: any) {
-        console.error("Error creating product:", error)
         redirect(`/admin/products/new?error=${encodeURIComponent(error.message)}`)
     }
 }
@@ -105,7 +102,6 @@ export async function updateProduct(productId: number, formData: FormData) {
         revalidatePath("/admin/products")
         redirect("/admin/products?success=Product updated successfully")
     } catch (error: any) {
-        console.error("Error updating product:", error)
         redirect(`/admin/products/${productId}/edit?error=${encodeURIComponent(error.message)}`)
     }
 }
@@ -121,7 +117,6 @@ export async function deleteProduct(productId: number) {
         revalidatePath("/admin/products")
         redirect("/admin/products?success=Product deleted successfully")
     } catch (error: any) {
-        console.error("Error deleting product:", error)
         redirect(`/admin/products?error=${encodeURIComponent(error.message)}`)
     }
 }
@@ -139,6 +134,5 @@ export async function toggleProductStatus(productId: number, isActive: boolean) 
 
         revalidatePath("/admin/products")
     } catch (error: any) {
-        console.error("Error toggling product status:", error)
     }
 }

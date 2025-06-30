@@ -7,7 +7,6 @@ export default async function AdminLayout({
                                           }: {
     children: React.ReactNode
 }) {
-    // This will redirect if user is not admin
     await requireAdmin()
 
     return (

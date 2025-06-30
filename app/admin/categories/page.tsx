@@ -32,7 +32,6 @@ export default async function CategoriesPage({
 
     const { data: categories } = await query
 
-    // Get product counts for each category
     const categoriesWithCounts = await Promise.all(
         (categories || []).map(async (category) => {
             const { count } = await supabase

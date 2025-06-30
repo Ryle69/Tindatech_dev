@@ -8,14 +8,12 @@ export default async function AnalyticsPage() {
 
     const supabase = await createClient()
 
-    // Get analytics data
     const [{ data: orders }, { data: products }, { count: totalCustomers }] = await Promise.all([
         supabase.from("Orders").select("total_amount, created_at, status"),
         supabase.from("Products").select("price, inventory_quantity"),
         supabase.from("Users").select("*", { count: "exact", head: true }).eq("role", "customer"),
     ])
 
-    // Calculate metrics
     const totalRevenue = orders?.reduce((sum, order) => sum + Number.parseFloat(order.total_amount), 0) || 0
     const totalOrders = orders?.length || 0
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
@@ -30,7 +28,6 @@ export default async function AnalyticsPage() {
                 <p className="text-gray-600">Track your store performance</p>
             </div>
 
-            {/* Key Metrics */}
             <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardContent className="p-6">
@@ -98,7 +95,6 @@ export default async function AnalyticsPage() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-                {/* Revenue Overview */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Revenue Overview</CardTitle>
@@ -122,7 +118,6 @@ export default async function AnalyticsPage() {
                     </CardContent>
                 </Card>
 
-                {/* Inventory Value */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Inventory Overview</CardTitle>

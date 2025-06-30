@@ -17,7 +17,6 @@ export async function login(formData: FormData) {
         redirect(`/error?message=Email and password are required`)
     }
 
-    // Use actual form data instead of sample credentials
     const loginData = {
         email: email,
         password: password,
@@ -30,10 +29,8 @@ export async function login(formData: FormData) {
         redirect(`/error?message=${encodeURIComponent(error.message)}`)
     }
 
-    // Successful login
     console.log("✅ Login successful:", data.user?.email, "User ID:", data.user?.id)
 
-    // Check if user is admin to redirect appropriately
     if (data.user) {
         const { data: userProfile, error: profileError } = await supabase
             .from("Users")
