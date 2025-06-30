@@ -9,14 +9,13 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <img src="/logo-expanded.svg" alt="Cheryll's Fashion Boutique Logo" />
-              <span className="font-bold text-xl">Cheryll's Fashion Boutique</span>
             </div>
             <p className="text-sm">Style that works as hard as your budget does.</p>
             <div className="flex space-x-4">
-              <Facebook className="h-5 w-5 hover:text-white cursor-pointer" />
-              <Instagram className="h-5 w-5 hover:text-white cursor-pointer" />
-              <Twitter className="h-5 w-5 hover:text-white cursor-pointer" />
-              <Mail className="h-5 w-5 hover:text-white cursor-pointer" />
+              <Facebook className="h-5 w-5 hover:text-[#D7D2AE] cursor-pointer" />
+              <Instagram className="h-5 w-5 hover:text-[#D7D2AE] cursor-pointer" />
+              <Twitter className="h-5 w-5 hover:text-[#D7D2AE] cursor-pointer" />
+              <Mail className="h-5 w-5 hover:text-[#D7D2AE] cursor-pointer" />
             </div>
           </div>
           <div>

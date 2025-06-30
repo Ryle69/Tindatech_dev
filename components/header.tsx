@@ -31,7 +31,7 @@ export function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-sm font-medium transition-colors hover:text-primary"
+                className="text-sm font-medium transition-colors text-[#D7D2AE] hover:text-[#F7F1C5]"
               >
                 {item.name}
               </Link>
@@ -39,39 +39,39 @@ export function Header() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="hidden sm:flex">
+        <div className="flex items-center gap-4 text-[#D7D2AE]">
+          <Button variant="ghost" size="icon" className="hidden sm:flex hover:bg-[#F7F1C5] hover:text-[#69AB3C]">
             <Search className="h-4 w-4" />
           </Button>
 
           <Link href="/login">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="hover:bg-[#F7F1C5] hover:text-[#69AB3C]">
               <User className="h-4 w-4" />
             </Button>
           </Link>
 
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="hover:bg-[#F7F1C5] hover:text-[#69AB3C]">
             <Heart className="h-4 w-4" />
           </Button>
 
-          <Button variant="ghost" size="icon" className="relative">
+          <Button variant="ghost" size="icon" className="relative hover:bg-[#F7F1C5] hover:text-[#69AB3C]">
             <ShoppingCart className="h-4 w-4" />
             <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">3</Badge>
           </Button>
 
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="ghost" size="icon" className="md:hidden hover:bg-[#F7F1C5] hover:text-[#69AB3C]">
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <SheetContent side="right" className="w-[300px] sm:w-[400px] text-[#A2C078]">
               <nav className="flex flex-col gap-4">
                 {navigation.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="block px-2 py-1 text-lg"
+                    className="block px-2 py-1 text-lg hover:text-[#69AB3C]"
                     onClick={() => setIsOpen(false)}
                   >
                     {item.name}

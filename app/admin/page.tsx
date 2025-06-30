@@ -1,110 +1,100 @@
+import { requireAdmin, getAdminData } from "@/utils/admin-middleware"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AdminLayout } from "@/components/admin-layout"
 import { Badge } from "@/components/ui/badge"
-import { Users, Package, ShoppingCart, DollarSign, TrendingUp, AlertCircle } from "lucide-react"
+import { Package, ShoppingCart, Users, TrendingUp, AlertTriangle } from "lucide-react"
 
-export default function AdminDashboard() {
-  const stats = [
-    {
-      title: "Total Orders",
-      value: "1,234",
-      change: "+12%",
-      changeType: "positive" as const,
-      icon: ShoppingCart,
-    },
-    {
-      title: "Total Revenue",
-      value: "$45,231",
-      change: "+8%",
-      changeType: "positive" as const,
-      icon: DollarSign,
-    },
-    {
-      title: "Active Products",
-      value: "567",
-      change: "+3%",
-      changeType: "positive" as const,
-      icon: Package,
-    },
-    {
-      title: "Total Customers",
-      value: "2,345",
-      change: "+15%",
-      changeType: "positive" as const,
-      icon: Users,
-    },
-  ]
-
-  const recentOrders = [
-    { id: "#1234", customer: "John Doe", amount: "$299.00", status: "completed", date: "2024-01-15" },
-    { id: "#1235", customer: "Jane Smith", amount: "$199.00", status: "processing", date: "2024-01-15" },
-    { id: "#1236", customer: "Bob Johnson", amount: "$89.00", status: "shipped", date: "2024-01-14" },
-    { id: "#1237", customer: "Alice Brown", amount: "$459.00", status: "pending", date: "2024-01-14" },
-  ]
-
-  const lowStockProducts = [
-    { name: "Premium Headphones", stock: 5, sku: "PRD-001" },
-    { name: "Smart Watch", stock: 3, sku: "PRD-002" },
-    { name: "Wireless Charger", stock: 8, sku: "PRD-003" },
-  ]
+export default async function AdminDashboard() {
+  await requireAdmin()
+  const { stats, recentOrders, lowStockProducts } = await getAdminData()
 
   return (
-    <AdminLayout userRole="admin" userName="Admin User">
-      <div className="space-y-6">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat) => (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <TrendingUp className="mr-1 h-3 w-3" />
-                  <span className={stat.changeType === "positive" ? "text-green-600" : "text-red-600"}>
-                    {stat.change}
-                  </span>
-                  <span className="ml-1">from last month</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-gray-600">Welcome to your store management dashboard</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Stats Cards */}
+        <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Package className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Products</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <ShoppingCart className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Orders</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalOrders}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Users className="h-8 w-8 text-purple-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Customers</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalCustomers}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <TrendingUp className="h-8 w-8 text-orange-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Revenue</p>
+                  <p className="text-2xl font-bold text-gray-900">$12,345</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
           {/* Recent Orders */}
           <Card>
             <CardHeader>
               <CardTitle>Recent Orders</CardTitle>
-              <CardDescription>Latest customer orders</CardDescription>
+              <CardDescription>Latest orders from your customers</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">{order.id}</p>
-                      <p className="text-sm text-muted-foreground">{order.customer}</p>
+                {recentOrders.map((order: any) => (
+                    <div key={order.id} className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{order.order_number}</p>
+                        <p className="text-sm text-gray-600">{new Date(order.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${order.total_amount}</p>
+                        <Badge
+                            variant={
+                              order.status === "delivered"
+                                  ? "default"
+                                  : order.status === "processing"
+                                      ? "secondary"
+                                      : "outline"
+                            }
+                        >
+                          {order.status}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="text-right space-y-1">
-                      <p className="text-sm font-medium">{order.amount}</p>
-                      <Badge
-                        variant={
-                          order.status === "completed"
-                            ? "default"
-                            : order.status === "processing"
-                              ? "secondary"
-                              : order.status === "shipped"
-                                ? "outline"
-                                : "destructive"
-                        }
-                      >
-                        {order.status}
-                      </Badge>
-                    </div>
-                  </div>
                 ))}
               </div>
             </CardContent>
@@ -114,27 +104,30 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-orange-500" />
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
                 Low Stock Alert
               </CardTitle>
               <CardDescription>Products running low on inventory</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {lowStockProducts.map((product) => (
-                  <div key={product.sku} className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">{product.name}</p>
-                      <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
-                    </div>
-                    <Badge variant="destructive">{product.stock} left</Badge>
-                  </div>
-                ))}
+                {lowStockProducts.length > 0 ? (
+                    lowStockProducts.map((product: any) => (
+                        <div key={product.id} className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{product.name}</p>
+                            <p className="text-sm text-gray-600">Threshold: {product.low_stock_threshold}</p>
+                          </div>
+                          <Badge variant="destructive">{product.inventory_quantity} left</Badge>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-sm text-gray-600">All products are well stocked!</p>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
-    </AdminLayout>
   )
 }

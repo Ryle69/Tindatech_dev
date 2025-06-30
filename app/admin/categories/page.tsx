@@ -4,13 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, Package } from "lucide-react"
 import Link from "next/link"
-import { ProductActions } from "./components/product-actions"
+import { CategoryActions } from "./components/category-actions"
 
-export default async function ProductsPage({
-                                               searchParams,
-                                           }: {
+export default async function CategoriesPage({
+                                                 searchParams,
+                                             }: {
     searchParams: { success?: string; error?: string; search?: string }
 }) {
     await requireAdmin()
@@ -19,32 +19,45 @@ export default async function ProductsPage({
     const searchTerm = searchParams.search || ""
 
     let query = supabase
-        .from("Products")
+        .from("Categories")
         .select(`
       *,
-      Categories (
-        name
-      )
+      Products!inner(count)
     `)
         .order("created_at", { ascending: false })
 
     if (searchTerm) {
-        query = query.or(`name.ilike.%${searchTerm}%,sku.ilike.%${searchTerm}%`)
+        query = query.ilike("name", `%${searchTerm}%`)
     }
 
-    const { data: products } = await query
+    const { data: categories } = await query
+
+    // Get product counts for each category
+    const categoriesWithCounts = await Promise.all(
+        (categories || []).map(async (category) => {
+            const { count } = await supabase
+                .from("Products")
+                .select("*", { count: "exact", head: true })
+                .eq("category_id", category.id)
+
+            return {
+                ...category,
+                product_count: count || 0,
+            }
+        }),
+    )
 
     return (
         <div className="p-6">
             <div className="mb-6 flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Products</h1>
-                    <p className="text-gray-600">Manage your product catalog</p>
+                    <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
+                    <p className="text-gray-600">Organize your products into categories</p>
                 </div>
                 <Button asChild className="gap-2">
-                    <Link href="/admin/products/new">
+                    <Link href="/admin/categories/new">
                         <Plus className="h-4 w-4" />
-                        Add Product
+                        Add Category
                     </Link>
                 </Button>
             </div>
@@ -65,13 +78,13 @@ export default async function ProductsPage({
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>All Products</CardTitle>
-                            <CardDescription>{products?.length || 0} products in your catalog</CardDescription>
+                            <CardTitle>All Categories</CardTitle>
+                            <CardDescription>{categoriesWithCounts?.length || 0} categories in your store</CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
                             <Search className="h-4 w-4 text-gray-400" />
                             <form method="GET" className="flex gap-2">
-                                <Input name="search" placeholder="Search products..." defaultValue={searchTerm} className="w-64" />
+                                <Input name="search" placeholder="Search categories..." defaultValue={searchTerm} className="w-64" />
                                 <Button type="submit" variant="outline">
                                     Search
                                 </Button>
@@ -84,51 +97,40 @@ export default async function ProductsPage({
                         <table className="w-full">
                             <thead>
                             <tr className="border-b">
-                                <th className="text-left py-3 px-4 font-medium">Product</th>
                                 <th className="text-left py-3 px-4 font-medium">Category</th>
-                                <th className="text-left py-3 px-4 font-medium">Price</th>
-                                <th className="text-left py-3 px-4 font-medium">Stock</th>
+                                <th className="text-left py-3 px-4 font-medium">Description</th>
+                                <th className="text-left py-3 px-4 font-medium">Products</th>
                                 <th className="text-left py-3 px-4 font-medium">Status</th>
                                 <th className="text-left py-3 px-4 font-medium">Actions</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {products?.map((product: any) => (
-                                <tr key={product.id} className="border-b">
+                            {categoriesWithCounts?.map((category: any) => (
+                                <tr key={category.id} className="border-b">
                                     <td className="py-3 px-4">
                                         <div>
-                                            <p className="font-medium">{product.name}</p>
-                                            <p className="text-sm text-gray-600">{product.sku || "No SKU"}</p>
+                                            <p className="font-medium">{category.name}</p>
+                                            <p className="text-sm text-gray-600">{category.slug}</p>
                                         </div>
                                     </td>
                                     <td className="py-3 px-4">
-                                        <Badge variant="outline">{product.Categories?.name || "No Category"}</Badge>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <div>
-                                            <p className="font-medium">${product.price}</p>
-                                            {product.compare_price && (
-                                                <p className="text-sm text-gray-500 line-through">${product.compare_price}</p>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <Badge
-                                            variant={product.inventory_quantity <= product.low_stock_threshold ? "destructive" : "default"}
-                                        >
-                                            {product.inventory_quantity}
-                                        </Badge>
+                                        <p className="text-sm text-gray-600 max-w-xs truncate">
+                                            {category.description || "No description"}
+                                        </p>
                                     </td>
                                     <td className="py-3 px-4">
                                         <div className="flex items-center gap-2">
-                                            <Badge variant={product.is_active ? "default" : "secondary"}>
-                                                {product.is_active ? "Active" : "Inactive"}
-                                            </Badge>
-                                            {product.is_featured && <Badge variant="outline">Featured</Badge>}
+                                            <Package className="h-4 w-4 text-gray-400" />
+                                            <span>{category.product_count}</span>
                                         </div>
                                     </td>
                                     <td className="py-3 px-4">
-                                        <ProductActions product={product} />
+                                        <Badge variant={category.is_active ? "default" : "secondary"}>
+                                            {category.is_active ? "Active" : "Inactive"}
+                                        </Badge>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <CategoryActions category={category} />
                                     </td>
                                 </tr>
                             ))}
