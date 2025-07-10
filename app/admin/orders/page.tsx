@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Eye, Search } from "lucide-react"
 import Link from "next/link"
+import {cookies} from "next/headers";
 
 export default async function OrdersPage({
                                              searchParams,
@@ -14,7 +15,8 @@ export default async function OrdersPage({
 }) {
     await requireAdmin()
 
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore) // Add await here
     const searchTerm = searchParams.search || ""
     const statusFilter = searchParams.status || ""
 

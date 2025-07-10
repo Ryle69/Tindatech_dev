@@ -11,17 +11,16 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { updateProduct } from "../../actions"
 import { notFound } from "next/navigation"
+import {cookies} from "next/headers";
 
-export default async function EditProductPage({
-                                                  params,
-                                                  searchParams,
-                                              }: {
+export default async function EditProductPage({ params, searchParams, }: {
     params: { id: string }
     searchParams: { error?: string }
 }) {
     await requireAdmin()
-
-    const supabase = await createClient()
+0
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore) // Add await here
     const productId = Number.parseInt(params.id)
 
     const [{ data: product }, { data: categories }] = await Promise.all([

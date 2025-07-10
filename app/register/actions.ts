@@ -19,31 +19,71 @@ function createServiceRoleClient() {
 export async function register(formData: FormData) {
     const supabase = await createClient()
 
+    // Extract form data
     const email = formData.get("email") as string
     const password = formData.get("password") as string
     const confirmPassword = formData.get("confirmPassword") as string
     const firstName = formData.get("firstName") as string
     const lastName = formData.get("lastName") as string
+    const role = (formData.get("role") as string) || "customer"
     const agreeToTerms = formData.get("agreeToTerms") === "on"
     const subscribeNewsletter = formData.get("subscribeNewsletter") === "on"
 
+    console.log("Registration attempt:", {
+        email,
+        firstName,
+        lastName,
+        role,
+        agreeToTerms,
+        subscribeNewsletter,
+        passwordLength: password?.length,
+        confirmPasswordLength: confirmPassword?.length,
+    })
+
+    // Validation
     if (!email || !password || !confirmPassword || !firstName || !lastName) {
+        console.log("Missing required fields")
         redirect(`/register?message=Please fill in all required fields`)
     }
 
     if (!agreeToTerms) {
+        console.log("Terms not agreed")
         redirect("/register?message=You must agree to the terms and conditions")
     }
 
     if (password !== confirmPassword) {
+        console.log("Passwords don't match")
         redirect(`/register?message=Passwords don't match`)
     }
 
     if (password.length < 6) {
+        console.log("Password too short")
         redirect(`/register?message=Password must be at least 6 characters long`)
     }
 
     try {
+        console.log("Starting registration...")
+
+        // Check if email already exists using service role client
+        const serviceRoleClient = createServiceRoleClient()
+        const { data: existingUsers, error: listError } = await serviceRoleClient.auth.admin.listUsers({
+            page: 1,
+            perPage: 1000
+        })
+
+        if (listError) {
+            console.error("Error checking existing users:", listError)
+            redirect(`/register?message=Failed to check existing users`)
+        }
+
+        // Check if user with this email already exists
+        const userExists = existingUsers.users.some(user => user.email === email)
+        if (userExists) {
+            console.log("Email already exists")
+            redirect(`/register?message=Email already exists`)
+        }
+
+        // 1. Sign up user with Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
@@ -57,29 +97,48 @@ export async function register(formData: FormData) {
         })
 
         if (authError) {
+            console.error("Auth signup error:", authError)
+            if (authError.message.includes("already registered")) {
+                redirect(`/register?message=Email already exists`)
+            }
             redirect(`/register?message=${encodeURIComponent(authError.message)}`)
         }
 
+        console.log("Auth signup successful:", authData.user?.id)
+
+        // 2. Create user profile in database
         if (authData.user) {
-            const serviceRoleClient = createServiceRoleClient()
+            console.log("Creating user profile...")
 
             const { error: profileError } = await serviceRoleClient.from("Users").insert({
                 auth_id: authData.user.id,
                 email: authData.user.email,
                 first_name: firstName,
                 last_name: lastName,
-                role: "customer",
+                role: role, // Use selected role
                 subscribe_newsletter: subscribeNewsletter,
                 created_at: new Date().toISOString(),
             })
+
+            if (profileError) {
+                console.error("User profile creation error:", profileError)
+                // Don't fail registration if profile creation fails
+                console.log("User created in auth but profile creation failed")
+            } else {
+                console.log("User profile created successfully")
+            }
         }
 
+        // 3. Handle redirection based on email confirmation settings
         if (authData.user && !authData.session) {
+            console.log("Email confirmation required - redirecting to check email")
             redirect("/register/check-email")
         }
 
         if (authData.session && authData.user) {
-            const serviceRoleClient = createServiceRoleClient()
+            console.log("User logged in immediately - checking role for redirect")
+
+            // Check user role for proper redirect
             const { data: userProfile } = await serviceRoleClient
                 .from("Users")
                 .select("role")
@@ -92,11 +151,17 @@ export async function register(formData: FormData) {
                 redirect("/profile")
             }
         }
+
+        // Fallback - this should not happen but just in case
+        console.log("Unexpected state - redirecting to check email")
         redirect("/register/check-email")
     } catch (error: any) {
+        // Only log actual errors, not redirect "errors"
         if (error.message !== "NEXT_REDIRECT") {
+            console.error("Actual registration error:", error)
             redirect(`/register?message=${encodeURIComponent(error.message || "Registration failed. Please try again.")}`)
         }
+        // If it's a NEXT_REDIRECT, just re-throw it to let Next.js handle it
         throw error
     }
 }

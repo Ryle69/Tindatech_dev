@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Plus, Search } from "lucide-react"
 import Link from "next/link"
 import { ProductActions } from "./components/product-actions"
+import {cookies} from "next/headers";
 
 export default async function ProductsPage({
                                                searchParams,
@@ -15,7 +16,8 @@ export default async function ProductsPage({
 }) {
     await requireAdmin()
 
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore) // Add await here
     const searchTerm = searchParams.search || ""
 
     let query = supabase
@@ -48,18 +50,6 @@ export default async function ProductsPage({
                     </Link>
                 </Button>
             </div>
-
-            {searchParams.success && (
-                <div className="mb-6 rounded-md bg-green-50 p-4">
-                    <p className="text-sm text-green-600">{decodeURIComponent(searchParams.success)}</p>
-                </div>
-            )}
-
-            {searchParams.error && (
-                <div className="mb-6 rounded-md bg-red-50 p-4">
-                    <p className="text-sm text-red-600">{decodeURIComponent(searchParams.error)}</p>
-                </div>
-            )}
 
             <Card>
                 <CardHeader>
