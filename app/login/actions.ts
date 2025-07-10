@@ -14,9 +14,10 @@ export async function login(formData: FormData) {
     console.log("🔍 Login Debug - Attempting login for:", email)
 
     if (!email || !password) {
-        redirect(`/error?message=Email and password are required`)
+        redirect(`/login?message=Email and password are required`)
     }
 
+    // Use actual form data instead of sample credentials
     const loginData = {
         email: email,
         password: password,
@@ -26,11 +27,13 @@ export async function login(formData: FormData) {
 
     if (error) {
         console.error("❌ Login error:", error.message)
-        redirect(`/error?message=${encodeURIComponent(error.message)}`)
+        redirect(`/login?message=${encodeURIComponent("Invalid credentials")}`)
     }
 
+    // Successful login
     console.log("✅ Login successful:", data.user?.email, "User ID:", data.user?.id)
 
+    // Check if user is admin to redirect appropriately
     if (data.user) {
         const { data: userProfile, error: profileError } = await supabase
             .from("Users")
@@ -42,6 +45,7 @@ export async function login(formData: FormData) {
 
         revalidatePath("/", "layout")
 
+        // Redirect based on user role
         if (userProfile?.role === "admin") {
             console.log("🔄 Login - Redirecting admin to /admin")
             redirect("/admin") // Redirect admins to admin panel
@@ -50,7 +54,8 @@ export async function login(formData: FormData) {
             redirect("/profile") // Redirect customers to profile
         }
     } else {
+        // This shouldn't happen if login was successful, but just in case
         console.error("❌ Login successful but user data not available")
-        redirect("/error?message=Login successful but user data not available")
+        redirect("/login?message=Login successful but user data not available")
     }
 }

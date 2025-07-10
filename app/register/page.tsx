@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
 import { register } from "./actions"
 import { useSearchParams } from "next/navigation"
@@ -15,12 +16,15 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedRole, setSelectedRole] = useState("customer")
   const searchParams = useSearchParams()
   const message = searchParams.get("message")
 
   async function handleSubmit(formData: FormData) {
     setIsSubmitting(true)
     try {
+      // Add role to form data
+      formData.set("role", selectedRole)
       await register(formData)
     } catch (error) {
       console.error("Form submission error:", error)
@@ -30,10 +34,15 @@ function RegisterForm() {
   }
 
   return (
-      <div className="min-h-screen flex items-center justify-center py-12 px-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Cheryll's Fashion Boutique</h1>
+            <Link href="/" className="flex items-center justify-center space-x-2 mb-8">
+              <div className="h-10 w-10 bg-black rounded-md flex items-center justify-center">
+                <span className="text-white font-bold">CFB</span>
+              </div>
+              <span className="font-bold text-2xl">Cheryll's Fashion Boutique</span>
+            </Link>
           </div>
 
           <Card>
@@ -93,6 +102,19 @@ function RegisterForm() {
                         disabled={isSubmitting}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="role">Account Type *</Label>
+                  <Select value={selectedRole} onValueChange={setSelectedRole} disabled={isSubmitting}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select account type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="customer">Customer</SelectItem>
+                      <SelectItem value="admin">Business Manager</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

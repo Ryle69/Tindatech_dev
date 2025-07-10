@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Edit, Package, ShoppingBag, Star, TrendingUp, Users, LogOut, Crown, Save, Eye, EyeOff } from "lucide-react"
+import { Edit, Package, ShoppingBag, Star, TrendingUp, Users, LogOut, Crown, Eye, EyeOff, X, Check } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
 import Link from "next/link"
 import { updateProfile, updateNewsletterSubscription, updatePassword } from "./actions"
@@ -28,11 +28,17 @@ interface UserProfile {
 interface ProfileClientProps {
     user: User
     userProfile: UserProfile | null
-    searchParams?: { success?: string; error?: string }
 }
 
-export default function ProfileClient({ user, userProfile, searchParams }: ProfileClientProps) {
-    const [isEditingProfile, setIsEditingProfile] = useState(false)
+export default function ProfileClient({ user, userProfile }: ProfileClientProps) {
+    const [isEditing, setIsEditing] = useState(false)
+    const [editedFirstName, setEditedFirstName] = useState(userProfile?.first_name || "")
+    const [editedLastName, setEditedLastName] = useState(userProfile?.last_name || "")
+    const [newsletterSubscription, setNewsletterSubscription] = useState(userProfile?.subscribe_newsletter || false)
+    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+    const [isPending, startTransition] = useTransition()
+
+    // Password change states
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -66,11 +72,6 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
             loyaltyPoints: 2450,
             savedItems: 8,
         },
-        recentOrders: [
-            { id: "#3421", date: "Dec 15, 2024", total: "$89.99", status: "Delivered" },
-            { id: "#3398", date: "Nov 28, 2024", total: "$156.50", status: "Delivered" },
-            { id: "#3365", date: "Nov 12, 2024", total: "$45.00", status: "Delivered" },
-        ],
     }
 
     const adminData = {
@@ -98,22 +99,57 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
         }
     }
 
+    function handleEditToggle() {
+        if (isEditing) {
+            // Reset to original values when canceling
+            setEditedFirstName(userProfile?.first_name || "")
+            setEditedLastName(userProfile?.last_name || "")
+        }
+        setIsEditing(!isEditing)
+        setMessage(null)
+    }
+
+    async function handleProfileSubmit(formData: FormData) {
+        startTransition(async () => {
+            const result = await updateProfile(formData)
+            if (result.error) {
+                setMessage({ type: "error", text: result.error })
+            } else {
+                setMessage({ type: "success", text: result.success || "Profile updated successfully" })
+                setIsEditing(false)
+            }
+        })
+    }
+
+    async function handleNewsletterSubmit(formData: FormData) {
+        startTransition(async () => {
+            const result = await updateNewsletterSubscription(formData)
+            if (result.error) {
+                setMessage({ type: "error", text: result.error })
+            } else {
+                setMessage({ type: "success", text: result.success || "Newsletter subscription updated" })
+            }
+        })
+    }
+
+    async function handlePasswordSubmit(formData: FormData) {
+        startTransition(async () => {
+            const result = await updatePassword(formData)
+            if (result.error) {
+                setMessage({ type: "error", text: result.error })
+            } else {
+                setMessage({ type: "success", text: result.success || "Password updated successfully" })
+                // Reset form
+                const form = document.getElementById("password-form") as HTMLFormElement
+                form?.reset()
+            }
+        })
+    }
+
     return (
         <div className="min-h-screen bg-gray-[#D7D2AE] p-4 md:p-6">
             <div className="mx-auto max-w-6xl space-y-6">
-                {/* Success/Error Messages */}
-                {searchParams?.success && (
-                    <div className="rounded-md bg-green-50 p-4">
-                        <p className="text-sm text-green-600">{decodeURIComponent(searchParams.success)}</p>
-                    </div>
-                )}
-
-                {searchParams?.error && (
-                    <div className="rounded-md bg-red-50 p-4">
-                        <p className="text-sm text-red-600">{decodeURIComponent(searchParams.error)}</p>
-                    </div>
-                )}
-
+                {/* Header with Sign Out */}
                 <div className="flex items-center justify-between rounded-lg bg-[#F7F1C5] p-4 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
@@ -141,7 +177,6 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
                                 </Link>
                             </Button>
                         )}
-
                         <Button
                             variant="outline"
                             onClick={handleSignOut}
@@ -152,6 +187,20 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
                         </Button>
                     </div>
                 </div>
+
+                {/* Message Display */}
+                {message && (
+                    <div
+                        className={`p-4 rounded-lg flex items-center gap-2 ${
+                            message.type === "success"
+                                ? "bg-green-50 text-green-700 border border-green-200"
+                                : "bg-red-50 text-red-700 border border-red-200"
+                        }`}
+                    >
+                        {message.type === "success" ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                        {message.text}
+                    </div>
+                )}
 
                 <Card>
                     <CardContent className="p-6">
@@ -188,16 +237,17 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
 
                             <Button
                                 variant="outline"
-                                onClick={() => setIsEditingProfile(!isEditingProfile)}
                                 className="gap-2 text-[#69ab3c] hover:text-[#69ab3c] bg-transparent"
+                                onClick={handleEditToggle}
                             >
                                 <Edit className="h-4 w-4" />
-                                {isEditingProfile ? "Cancel Edit" : "Edit Profile"}
+                                {isEditing ? "Cancel Edit" : "Edit Profile"}
                             </Button>
                         </div>
                     </CardContent>
                 </Card>
 
+                {/* Stats Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {isAdmin ? (
                         <>
@@ -310,71 +360,68 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
                             <CardHeader>
                                 <CardTitle>Personal Information</CardTitle>
                                 <CardDescription>
-                                    {isEditingProfile ? "Update your account details" : "Your account details from Supabase"}
+                                    {isEditing ? "Edit your account details" : "Your account details from Supabase"}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {isEditingProfile ? (
-                                    <form action={updateProfile} className="space-y-4">
+                                {isEditing ? (
+                                    <form action={handleProfileSubmit} className="space-y-4">
                                         <div className="grid gap-4 md:grid-cols-2">
                                             <div className="space-y-2">
-                                                <Label htmlFor="firstName">First Name *</Label>
-                                                <Input id="firstName" name="firstName" defaultValue={userProfile?.first_name || ""} required />
+                                                <Label htmlFor="firstName">First Name</Label>
+                                                <Input
+                                                    id="firstName"
+                                                    name="firstName"
+                                                    value={editedFirstName}
+                                                    onChange={(e) => setEditedFirstName(e.target.value)}
+                                                    required
+                                                />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="lastName">Last Name *</Label>
-                                                <Input id="lastName" name="lastName" defaultValue={userProfile?.last_name || ""} required />
+                                                <Label htmlFor="lastName">Last Name</Label>
+                                                <Input
+                                                    id="lastName"
+                                                    name="lastName"
+                                                    value={editedLastName}
+                                                    onChange={(e) => setEditedLastName(e.target.value)}
+                                                    required
+                                                />
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="email">Email</Label>
-                                            <Input id="email" type="email" defaultValue={currentUser.email} disabled />
-                                            <p className="text-sm text-gray-600">Email cannot be changed from this page</p>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="role">Role</Label>
-                                            <Input id="role" defaultValue={userProfile?.role || "customer"} disabled />
-                                        </div>
-                                        <div className="flex gap-4">
-                                            <Button type="submit" className="gap-2">
-                                                <Save className="h-4 w-4" />
-                                                Save Changes
+                                        <div className="flex gap-2">
+                                            <Button type="submit" disabled={isPending}>
+                                                {isPending ? "Saving..." : "Save Changes"}
                                             </Button>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                onClick={() => setIsEditingProfile(false)}
-                                                className="bg-transparent"
-                                            >
+                                            <Button type="button" variant="outline" onClick={handleEditToggle}>
                                                 Cancel
                                             </Button>
                                         </div>
                                     </form>
                                 ) : (
-                                    <div className="space-y-4">
+                                    <>
                                         <div className="grid gap-4 md:grid-cols-2">
                                             <div className="space-y-2">
                                                 <Label htmlFor="firstName">First Name</Label>
-                                                <Input id="firstName" defaultValue={userProfile?.first_name || ""} disabled />
+                                                <Input id="firstName" value={userProfile?.first_name || ""} disabled />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="lastName">Last Name</Label>
-                                                <Input id="lastName" defaultValue={userProfile?.last_name || ""} disabled />
+                                                <Input id="lastName" value={userProfile?.last_name || ""} disabled />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="email">Email</Label>
-                                            <Input id="email" type="email" defaultValue={currentUser.email} disabled />
+                                            <Input id="email" type="email" value={currentUser.email} disabled />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="role">Role</Label>
-                                            <Input id="role" defaultValue={userProfile?.role || "customer"} disabled />
+                                            <Input id="role" value={userProfile?.role || "customer"} disabled />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="userId">User ID</Label>
-                                            <Input id="userId" defaultValue={user.id} disabled />
+                                            <Input id="userId" value={user.id} disabled />
                                         </div>
-                                    </div>
+                                    </>
                                 )}
                             </CardContent>
                         </Card>
@@ -391,25 +438,19 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
                             <CardContent>
                                 {isAdmin ? (
                                     <div className="space-y-4">
-                                        <p className="text-sm text-muted-foreground">Quick access to admin features.</p>
+                                        <p className="text-sm text-muted-foreground">Admin management features will be implemented here.</p>
                                         <div className="grid gap-2">
-                                            <Button variant="outline" className="justify-start bg-transparent" asChild>
-                                                <Link href="/admin/customers">
-                                                    <Users className="mr-2 h-4 w-4" />
-                                                    View All Customers
-                                                </Link>
+                                            <Button variant="outline" className="justify-start bg-transparent">
+                                                <Users className="mr-2 h-4 w-4" />
+                                                View All Users
                                             </Button>
-                                            <Button variant="outline" className="justify-start bg-transparent" asChild>
-                                                <Link href="/admin/products">
-                                                    <Package className="mr-2 h-4 w-4" />
-                                                    Manage Products
-                                                </Link>
+                                            <Button variant="outline" className="justify-start bg-transparent">
+                                                <Package className="mr-2 h-4 w-4" />
+                                                Manage Products
                                             </Button>
-                                            <Button variant="outline" className="justify-start bg-transparent" asChild>
-                                                <Link href="/admin/analytics">
-                                                    <TrendingUp className="mr-2 h-4 w-4" />
-                                                    View Analytics
-                                                </Link>
+                                            <Button variant="outline" className="justify-start bg-transparent">
+                                                <TrendingUp className="mr-2 h-4 w-4" />
+                                                View Analytics
                                             </Button>
                                         </div>
                                     </div>
@@ -427,17 +468,21 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
                                 <CardDescription>Account settings and preferences</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <form action={updateNewsletterSubscription} className="space-y-4">
+                                <form action={handleNewsletterSubmit} className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <p className="font-medium">Newsletter Subscription</p>
                                             <p className="text-sm text-muted-foreground">Receive updates and promotions</p>
                                         </div>
-                                        <Switch name="subscribeNewsletter" defaultChecked={userProfile?.subscribe_newsletter} />
+                                        <Switch
+                                            name="subscribeNewsletter"
+                                            checked={newsletterSubscription}
+                                            onCheckedChange={setNewsletterSubscription}
+                                        />
+                                        <input type="hidden" name="subscribeNewsletter" value={newsletterSubscription.toString()} />
                                     </div>
-                                    <Button type="submit" className="gap-2">
-                                        <Save className="h-4 w-4" />
-                                        Save Settings
+                                    <Button type="submit" disabled={isPending}>
+                                        {isPending ? "Saving..." : "Save Settings"}
                                     </Button>
                                 </form>
                             </CardContent>
@@ -448,10 +493,10 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
                         <Card>
                             <CardHeader>
                                 <CardTitle>Security</CardTitle>
-                                <CardDescription>Manage your account security</CardDescription>
+                                <CardDescription>Change your password</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <form action={updatePassword} className="space-y-4">
+                                <form id="password-form" action={handlePasswordSubmit} className="space-y-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="currentPassword">Current Password</Label>
                                         <div className="relative">
@@ -459,6 +504,8 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
                                                 id="currentPassword"
                                                 name="currentPassword"
                                                 type={showCurrentPassword ? "text" : "password"}
+                                                placeholder="Enter current password"
+                                                className="pr-10"
                                                 required
                                             />
                                             <button
@@ -478,6 +525,8 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
                                                 id="newPassword"
                                                 name="newPassword"
                                                 type={showNewPassword ? "text" : "password"}
+                                                placeholder="Enter new password (min 6 characters)"
+                                                className="pr-10"
                                                 minLength={6}
                                                 required
                                             />
@@ -498,6 +547,8 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
                                                 id="confirmPassword"
                                                 name="confirmPassword"
                                                 type={showConfirmPassword ? "text" : "password"}
+                                                placeholder="Confirm new password"
+                                                className="pr-10"
                                                 minLength={6}
                                                 required
                                             />
@@ -511,9 +562,8 @@ export default function ProfileClient({ user, userProfile, searchParams }: Profi
                                         </div>
                                     </div>
 
-                                    <Button type="submit" className="gap-2">
-                                        <Save className="h-4 w-4" />
-                                        Update Password
+                                    <Button type="submit" disabled={isPending}>
+                                        {isPending ? "Updating..." : "Update Password"}
                                     </Button>
                                 </form>
                             </CardContent>

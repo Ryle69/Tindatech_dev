@@ -4,10 +4,11 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Package, Users, BarChart3, Settings, LogOut, Crown, Folder } from "lucide-react"
+import { LayoutDashboard, Package, Users, BarChart3, Settings, LogOut, Crown, Folder, UserCog } from "lucide-react"
 
 const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Manage Accounts", href: "/admin/accounts", icon: UserCog }, // Added this line
     { name: "Products", href: "/admin/products", icon: Package },
     { name: "Categories", href: "/admin/categories", icon: Folder },
     { name: "Customers", href: "/admin/customers", icon: Users },

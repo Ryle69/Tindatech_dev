@@ -33,7 +33,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col">
-      <section className="relative bg-gradient-to-r from-gray-900 to-gray-700 text-white">
+      <section className="relative bg-[#d7d2ae] text-white">
         <div className="container px-4 py-32 md:py-40">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
@@ -149,7 +149,7 @@ export default function HomePage() {
       </section>
 
       {/* Newsletter */}
-      <section className="py-16 bg-black text-white">
+      <section className="py-16 bg-[#D86304] text-white">
         <div className="container px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
           <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
