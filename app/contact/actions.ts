@@ -2,7 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server"
 import { z } from "zod"
-import {cookies} from "next/headers";
+import { cookies } from "next/headers"
 
 const ContactSchema = z.object({
     name: z.string().min(1, "Name is required"),
@@ -20,10 +20,14 @@ interface FormState {
     }
 }
 
-export async function submitContactForm(prevState: FormState, formData: FormData): Promise<FormState> {
+export async function submitContactForm(
+    prevState: FormState,
+    formData: FormData
+): Promise<FormState> {
     const cookieStore = cookies()
-    const supabase = await createClient(cookieStore) // Add await here
+    const supabase = await createClient(cookieStore)
 
+    // Form validation
     const validatedFields = ContactSchema.safeParse({
         name: formData.get("name"),
         email: formData.get("email"),
@@ -40,25 +44,28 @@ export async function submitContactForm(prevState: FormState, formData: FormData
 
     try {
         const { error } = await supabase
-            .from("ContactSubmissions")
+            .from("contact_submissions") // Note: using lowercase table name
             .insert({
                 name: validatedFields.data.name,
                 email: validatedFields.data.email,
                 message: validatedFields.data.message,
             })
 
-        if (error) throw error
+        if (error) {
+            console.error("Supabase error details:", error)
+            throw new Error("Failed to save your message. Please try again.")
+        }
 
         return {
             success: true,
             message: "Your message has been sent successfully! We'll get back to you soon.",
             errors: undefined,
         }
-    } catch (error) {
-        console.error("Error submitting contact form:", error)
+    } catch (error: any) {
+        console.error("Contact form submission error:", error)
         return {
             success: false,
-            message: "Failed to send message. Please try again later.",
+            message: error.message || "Failed to send message. Please try again later.",
             errors: undefined,
         }
     }
