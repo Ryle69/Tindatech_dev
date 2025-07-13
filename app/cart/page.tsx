@@ -1,6 +1,6 @@
 "use client"
 
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClient } from "@/utils/supabase/client"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -22,7 +22,7 @@ interface CartItem {
 export default function CartPage() {
     const [cartItems, setCartItems] = useState<CartItem[]>([])
     const [loading, setLoading] = useState(true)
-    const supabase = createClientComponentClient()
+    const supabase = createClient()
     const router = useRouter()
 
     useEffect(() => {
@@ -36,24 +36,27 @@ export default function CartPage() {
 
             try {
                 const { data, error } = await supabase
-                    .from("CartItems")
+                    .from("Carts")
                     .select(`
-                        id,
-                        quantity,
-                        size,
-                        color,
-                        Products (
+                        CartItems (
                             id,
-                            name,
-                            price,
-                            image
+                            quantity,
+                            size,
+                            color,
+                            Products (
+                                id,
+                                name,
+                                price,
+                                image
+                            )
                         )
                     `)
-                    .eq("Carts.user_id", user.id)
+                    .eq("user_id", user.id)
+                    .single()
 
                 if (error) throw error
 
-                const items = data.map((item: any) => ({
+                const items = data?.CartItems.map((item: any) => ({
                     id: item.id,
                     product_id: item.Products.id,
                     product_name: item.Products.name,
@@ -62,7 +65,7 @@ export default function CartPage() {
                     quantity: item.quantity,
                     size: item.size,
                     color: item.color
-                }))
+                })) || []
 
                 setCartItems(items)
             } catch (error) {
@@ -73,7 +76,7 @@ export default function CartPage() {
         }
 
         fetchCart()
-    }, [router, supabase])
+    }, [router])
 
     const updateQuantity = async (itemId: number, newQuantity: number) => {
         if (newQuantity < 1) return
