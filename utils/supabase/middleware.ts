@@ -107,10 +107,16 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
     }
 
-    // If user is authenticated and trying to access login/register pages
+// If user is authenticated and trying to access login/register pages
     if (user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register")) {
         console.log(`🔄 Redirecting authenticated user from ${request.nextUrl.pathname}`)
         console.log(`🔍 User role: ${userRole}, IsAdmin: ${isAdmin}`)
+        const returnUrl = request.nextUrl.searchParams.get("returnUrl")
+
+        if (returnUrl) {
+            console.log(`🔄 Redirecting to returnUrl: ${returnUrl}`)
+            return NextResponse.redirect(new URL(returnUrl, request.url))
+        }
 
         const url = request.nextUrl.clone()
         // Redirect based on role
