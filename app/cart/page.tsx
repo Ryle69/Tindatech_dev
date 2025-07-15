@@ -52,7 +52,6 @@ export default function CartPage() {
                         )
                     `)
                     .eq("user_id", user.id)
-                    .single()
 
                 if (error) throw error
 
