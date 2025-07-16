@@ -55,7 +55,9 @@ export default function CartPage() {
 
                 if (error) throw error
 
-                const items = data?.CartItems.map((item: any) => ({
+                console.log('Cart fetch result:', data);
+                // data is likely an array of carts, each with CartItems: []
+                const items = (data ?? []).flatMap((cart: any) => cart.CartItems ?? []).map((item: any) => ({
                     id: item.id,
                     product_id: item.Products.id,
                     product_name: item.Products.name,
@@ -64,9 +66,8 @@ export default function CartPage() {
                     quantity: item.quantity,
                     size: item.size,
                     color: item.color
-                })) || []
-
-                setCartItems(items)
+                }));
+                setCartItems(items);
             } catch (error) {
                 console.error("Error fetching cart:", error)
             } finally {

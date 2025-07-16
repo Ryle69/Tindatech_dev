@@ -13,6 +13,10 @@ import { Edit, Package, ShoppingBag, Star, TrendingUp, Users, LogOut, Crown, Eye
 import type { User } from "@supabase/supabase-js"
 import Link from "next/link"
 import { updateProfile, updateNewsletterSubscription, updatePassword } from "./actions"
+import { fetchOrders } from "./fetch-orders";
+import OrderHistory from "./OrderHistory";
+import { useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
 
 interface UserProfile {
     id: number
@@ -60,6 +64,21 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
             month: "long",
         })
 
+    const [orderCount, setOrderCount] = useState<number | null>(null);
+
+    useEffect(() => {
+        async function fetchOrderCount() {
+            if (!userProfile?.auth_id) return;
+            const supabase = createClient();
+            const { count, error } = await supabase
+                .from("Orders")
+                .select("*", { count: "exact", head: true })
+                .eq("user_id", userProfile.auth_id);
+            if (!error) setOrderCount(count ?? 0);
+        }
+        fetchOrderCount();
+    }, [userProfile?.auth_id]);
+
     const customerData = {
         name: displayName,
         email: user.email || "",
@@ -67,7 +86,7 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
         avatar: "/placeholder.svg?height=100&width=100",
         joinDate: joinDate,
         stats: {
-            totalOrders: 12,
+            totalOrders: orderCount ?? 0, // now dynamic
             totalSpent: "$1,245",
             loyaltyPoints: 2450,
             savedItems: 8,
@@ -437,26 +456,30 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                             </CardHeader>
                             <CardContent>
                                 {isAdmin ? (
-                                    <div className="space-y-4">
-                                        <p className="text-sm text-muted-foreground">Admin management features will be implemented here.</p>
-                                        <div className="grid gap-2">
-                                            <Button variant="outline" className="justify-start bg-transparent">
-                                                <Users className="mr-2 h-4 w-4" />
-                                                View All Users
-                                            </Button>
-                                            <Button variant="outline" className="justify-start bg-transparent">
-                                                <Package className="mr-2 h-4 w-4" />
-                                                Manage Products
-                                            </Button>
-                                            <Button variant="outline" className="justify-start bg-transparent">
-                                                <TrendingUp className="mr-2 h-4 w-4" />
-                                                View Analytics
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground">Your order history will be displayed here.</p>
-                                )}
+    <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">Admin management features will be implemented here.</p>
+        <div className="grid gap-2">
+            <Button variant="outline" className="justify-start bg-transparent">
+                <Users className="mr-2 h-4 w-4" />
+                View All Users
+            </Button>
+            <Button variant="outline" className="justify-start bg-transparent">
+                <Package className="mr-2 h-4 w-4" />
+                Manage Products
+            </Button>
+            <Button variant="outline" className="justify-start bg-transparent">
+                <TrendingUp className="mr-2 h-4 w-4" />
+                View Analytics
+            </Button>
+        </div>
+    </div>
+) : (
+    userProfile?.auth_id ? (
+      <OrderHistory userId={userProfile.auth_id} />
+    ) : (
+      <p className="text-sm text-muted-foreground">Loading order history...</p>
+    )
+)}
                             </CardContent>
                         </Card>
                     </TabsContent>
