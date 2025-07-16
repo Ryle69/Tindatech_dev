@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
 import { createServerClient } from "@supabase/ssr"
+import {cookies} from "next/headers";
 
 // Create service role client for server actions
 function createServiceRoleClient() {
@@ -17,7 +18,8 @@ function createServiceRoleClient() {
 }
 
 export async function register(formData: FormData) {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     // Extract form data
     const email = formData.get("email") as string

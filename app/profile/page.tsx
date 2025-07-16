@@ -1,9 +1,11 @@
 import { createClient } from "@/utils/supabase/server"
 import { redirect } from "next/navigation"
 import ProfileClient from "./profile-client"
+import {cookies} from "next/headers";
 
 export default async function ProfilePage() {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     const {
         data: { user },

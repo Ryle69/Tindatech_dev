@@ -1,8 +1,10 @@
 import { createClient } from "@/utils/supabase/server"
 import { redirect } from "next/navigation"
+import {cookies} from "next/headers";
 
 export async function requireAdmin() {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     const {
         data: { user },
@@ -32,7 +34,8 @@ export async function requireAdmin() {
 }
 
 export async function getAdminData() {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     // Get dashboard stats
     const [

@@ -32,7 +32,7 @@ export default function ContactPage() {
             icon: <Mail className="h-6 w-6" />,
             title: "Email Us",
             description: "We'll respond quickly",
-            value: "hello@modernstore.com",
+            value: "kiwangcherryl@gmail.com",
         },
         {
             icon: <Phone className="h-6 w-6" />,

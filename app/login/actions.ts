@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
+import {cookies} from "next/headers";
 
 export async function login(formData: FormData) {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     // Get from front end: Make sure fields aren't empty
     const email = formData.get("email") as string
