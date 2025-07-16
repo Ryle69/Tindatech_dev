@@ -55,9 +55,11 @@ interface Order {
 
 interface OrdersClientProps {
   orders: Order[];
+  searchTerm?: string;
+  statusFilter?: string;
 }
 
-export default function OrdersClient({ orders }: OrdersClientProps) {
+export default function OrdersClient({ orders, searchTerm = "", statusFilter = "" }: OrdersClientProps) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -133,18 +135,43 @@ export default function OrdersClient({ orders }: OrdersClientProps) {
     setModalLoading(false);
   }
 
+  // State for status filter
+  const [status, setStatus] = useState<string>("all");
+
+  // Filter orders based on status
+  const filteredOrders = status === "all"
+    ? allOrders
+    : allOrders.filter((order) => order.status === status);
+
   return (
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
         <p className="text-gray-600">Manage customer orders</p>
       </div>
+      <div className="mb-4 flex gap-4 items-center">
+        <label htmlFor="status-filter" className="font-medium">Filter by status:</label>
+        <select
+          id="status-filter"
+          className="rounded border px-3 py-2"
+          value={status}
+          onChange={e => setStatus(e.target.value)}
+        >
+          <option value="all">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="processing">Processing</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>All Orders</CardTitle>
-              <CardDescription>{allOrders?.length || 0} orders total</CardDescription>
+              <CardDescription>{filteredOrders?.length || 0} orders total</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -162,7 +189,7 @@ export default function OrdersClient({ orders }: OrdersClientProps) {
                 </tr>
               </thead>
               <tbody>
-                {allOrders?.map((order) => (
+                {filteredOrders?.map((order) => (
                   <tr key={order.id} className="border-b">
                     <td className="py-3 px-4">
                       <div>

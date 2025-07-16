@@ -27,8 +27,11 @@ export default async function OrdersPage({
 
   return (
     <>
-
-      <OrdersClient orders={orders || []} />
+      <OrdersClient 
+        orders={orders || []}
+        searchTerm={searchTerm}
+        statusFilter={statusFilter}
+      />
     </>
   );
 }
