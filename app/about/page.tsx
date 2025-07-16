@@ -203,7 +203,7 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="mailto:hello@modernstore.com"
+              href="mailto:kiwangcherryl@gmail.com"
               className="bg-white text-black px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors"
             >
               Contact Us

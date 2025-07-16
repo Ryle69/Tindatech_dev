@@ -1,5 +1,3 @@
-"use client"
-
 import { requireAdmin } from "@/utils/admin-middleware"
 import { createClient } from "@/utils/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -32,14 +30,15 @@ export default async function NewProductPage({
                         Back to Products
                     </Button>
                 </Link>
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Add New Product</h1>
-                    <p className="text-gray-600">Create a new product for your store</p>
-                </div>
             </div>
 
             <Card>
-                <CardHeader>...</CardHeader>
+                <CardHeader>
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Add New Product</h1>
+                        <p className="text-gray-600">Create a new product for your store</p>
+                    </div>
+                </CardHeader>
                 <CardContent>
                     <ProductForm categories={categories || []} />
                 </CardContent>

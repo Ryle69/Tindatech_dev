@@ -1,9 +1,14 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Truck, Shield, Headphones, Star } from "lucide-react"
+import {useEffect, useState} from "react";
+import {createClientComponentClient} from "@supabase/auth-helpers-nextjs";
+import {useRouter} from "next/navigation";
 
 export default function HomePage() {
   const featuredProducts = [
@@ -30,6 +35,74 @@ export default function HomePage() {
       badge: "Featured",
     },
   ]
+
+  interface Product {
+    id: number
+    name: string
+    price: number
+    original_price?: number
+    category: string
+    image: string
+    badge?: string
+    rating?: number
+    reviews?: number
+    created_at: string
+    is_active: boolean
+  }
+
+  const router = useRouter()
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [sortBy, setSortBy] = useState("featured")
+  const [categories, setCategories] = useState<string[]>([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const supabase = createClientComponentClient()
+
+      try {
+        const { data: productsData, error: productsError } = await supabase
+            .from("Products")
+            .select(`
+                        *,
+                        Categories(name)
+                    `)
+            .eq("is_active", true) // Only fetch active products
+            .order("created_at", { ascending: false })
+
+        if (productsError) throw productsError
+
+        const transformedProducts = productsData.map((product: any) => ({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          original_price: product.original_price,
+          category: product.Categories?.name || 'Uncategorized',
+          image: product.image || "/placeholder.svg",
+          badge: product.badge,
+          rating: product.rating || 0,
+          reviews: product.reviews || 0,
+          created_at: product.created_at,
+          is_active: product.is_active
+        }))
+
+        setProducts(transformedProducts)
+
+        const uniqueCategories = Array.from(
+            new Set(transformedProducts.map(p => p.category))
+        )
+        setCategories(uniqueCategories)
+
+      } catch (error) {
+        console.error("Error fetching data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   return (
     <div className="flex flex-col">

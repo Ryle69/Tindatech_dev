@@ -54,10 +54,13 @@ export function Header() {
             <Heart className="h-4 w-4" />
           </Button>
 
-          <Button variant="ghost" size="icon" className="relative hover:bg-[#F7F1C5] hover:text-[#69AB3C]">
-            <ShoppingCart className="h-4 w-4" />
-            <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">3</Badge>
-          </Button>
+          <Link href="/cart">
+            <Button variant="ghost" size="icon" className="relative hover:bg-[#F7F1C5] hover:text-[#69AB3C]">
+              <ShoppingCart className="h-4 w-4" />
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">3</Badge>
+            </Button>
+
+          </Link>
 
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
