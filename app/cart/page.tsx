@@ -55,7 +55,7 @@ export default function CartPage() {
 
                 if (error) throw error
 
-                const items = data?.CartItems.map((item: any) => ({
+                const items = (data?.CartItems ?? []).map((item: any) => ({
                     id: item.id,
                     product_id: item.Products.id,
                     product_name: item.Products.name,
