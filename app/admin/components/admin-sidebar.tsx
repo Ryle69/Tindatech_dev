@@ -8,7 +8,8 @@ import { LayoutDashboard, Package, Users, BarChart3, Settings, LogOut, Crown, Fo
 
 const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Manage Accounts", href: "/admin/accounts", icon: UserCog }, // Added this line
+    { name: "Orders", href: "/admin/orders", icon: Package },
+    { name: "Manage Accounts", href: "/admin/accounts", icon: UserCog },
     { name: "Products", href: "/admin/products", icon: Package },
     { name: "Categories", href: "/admin/categories", icon: Folder },
     { name: "Customers", href: "/admin/customers", icon: Users },
