@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Mail, MapPin, Phone } from "lucide-react"
+import {Mail, MapPin, Phone} from "lucide-react"
 import { useFormState } from "react-dom"
 import { SubmitButton } from "@/components/submit-button"
+import { MapLocation } from "@/components/mapStoreLocation"
 import { submitContactForm } from "./actions"
 
 interface FormState {
@@ -37,14 +38,14 @@ export default function ContactPage() {
         {
             icon: <Phone className="h-6 w-6" />,
             title: "Call Us",
-            description: "Mon-Fri, 9am-5pm EST",
-            value: "+1 (555) 123-4567",
+            description: "Mon-Sun, 8am-8pm PST",
+            value: "+63 (999) 999-9999",
         },
         {
             icon: <MapPin className="h-6 w-6" />,
             title: "Visit Us",
             description: "Come say hello",
-            value: "123 Main St, New York, NY 10001",
+            value: "Olivarez Plaza, Tagaytay, Cavite 4120",
         },
     ]
 
@@ -154,9 +155,8 @@ export default function ContactPage() {
                         <div className="pt-4">
                             <h3 className="font-medium mb-2">Business Hours</h3>
                             <div className="space-y-1 text-gray-700">
-                                <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
-                                <p>Saturday: 10:00 AM - 4:00 PM</p>
-                                <p>Sunday: Closed</p>
+                                <p>Monday - Sunday (including Holidays)</p>
+                                <p>8:00 AM - 8:00 PM</p>
                             </div>
                         </div>
                     </div>
@@ -164,17 +164,7 @@ export default function ContactPage() {
 
                 {/* Map Section */}
                 <div className="mb-16">
-                    <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden">
-                        <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215209132773!2d-73.9878449241643!3d40.74844097138984!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a9b3117469%3A0xd134e199a405a163!2sEmpire%20State%20Building!5e0!3m2!1sen!2sus!4v1712345678901"
-                            width="100%"
-                            height="100%"
-                            style={{ border: 0 }}
-                            allowFullScreen
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
-                        ></iframe>
-                    </div>
+                    <MapLocation />
                 </div>
             </div>
         </div>

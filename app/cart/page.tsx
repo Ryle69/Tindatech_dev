@@ -58,6 +58,7 @@ export default function CartPage() {
                 console.log('Cart fetch result:', data);
                 // data is likely an array of carts, each with CartItems: []
                 const items = (data ?? []).flatMap((cart: any) => cart.CartItems ?? []).map((item: any) => ({
+
                     id: item.id,
                     product_id: item.Products.id,
                     product_name: item.Products.name,
