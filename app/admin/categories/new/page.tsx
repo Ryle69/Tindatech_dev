@@ -16,6 +16,8 @@ export default async function NewCategoryPage({
 }) {
     await requireAdmin()
 
+    const { error } = await searchParams
+
     return (
         <div className="p-6">
             <div className="mb-6 flex items-center gap-4">
@@ -31,9 +33,9 @@ export default async function NewCategoryPage({
                 </div>
             </div>
 
-            {searchParams.error && (
+            {error && (
                 <div className="mb-6 rounded-md bg-red-50 p-4">
-                    <p className="text-sm text-red-600">{decodeURIComponent(searchParams.error)}</p>
+                    <p className="text-sm text-red-600">{decodeURIComponent(error)}</p>
                 </div>
             )}
 

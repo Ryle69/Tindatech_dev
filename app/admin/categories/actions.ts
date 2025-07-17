@@ -3,9 +3,11 @@
 import { createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import {cookies} from "next/headers";
 
 export async function createCategory(formData: FormData) {
-    const supabase = await createClient()
+    const cookieStore = await cookies()
+    const supabase = await createClient(cookieStore)
 
     const name = formData.get("name") as string
     const description = formData.get("description") as string
@@ -39,7 +41,8 @@ export async function createCategory(formData: FormData) {
 }
 
 export async function updateCategory(categoryId: number, formData: FormData) {
-    const supabase = await createClient()
+    const cookieStore = await cookies()
+    const supabase = await createClient(cookieStore)
 
     const name = formData.get("name") as string
     const description = formData.get("description") as string
@@ -73,7 +76,8 @@ export async function updateCategory(categoryId: number, formData: FormData) {
 }
 
 export async function deleteCategory(categoryId: number) {
-    const supabase = await createClient()
+    const cookieStore = await cookies()
+    const supabase = await createClient(cookieStore)
 
     try {
         // Check if category has products
@@ -97,7 +101,8 @@ export async function deleteCategory(categoryId: number) {
 }
 
 export async function toggleCategoryStatus(categoryId: number, isActive: boolean) {
-    const supabase = await createClient()
+    const cookieStore = await cookies()
+    const supabase = await createClient(cookieStore)
 
     try {
         const { error } = await supabase

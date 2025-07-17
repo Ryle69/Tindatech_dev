@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useFormState, useFormStatus } from "react-dom"
 import { createProduct } from "../actions"
 import { Button } from "@/components/ui/button"
@@ -22,9 +23,35 @@ const initialState: FormState = {
 
 export function ProductForm({ categories }: { categories: any[] }) {
     const [state, formAction] = useFormState<FormState, FormData>(createProduct, initialState)
+    const [specifications, setSpecifications] = useState<{name: string, value: string}[]>([{name: '', value: ''}])
+
+    const addSpecification = () => {
+        setSpecifications([...specifications, {name: '', value: ''}])
+    }
+
+    const removeSpecification = (index: number) => {
+        const newSpecs = [...specifications]
+        newSpecs.splice(index, 1)
+        setSpecifications(newSpecs)
+    }
+
+    const handleSpecChange = (index: number, field: 'name' | 'value', newValue: string) => {
+        const newSpecs = [...specifications]
+        newSpecs[index][field] = newValue
+        setSpecifications(newSpecs)
+    }
 
     return (
-        <form action={formAction} className="space-y-6">
+        <form action={(formData) => {
+            // Add specifications to form data before submission
+            specifications.forEach((spec, index) => {
+                if (spec.name && spec.value) {
+                    formData.append(`specifications[${index}][name]`, spec.name)
+                    formData.append(`specifications[${index}][value]`, spec.value)
+                }
+            })
+            return formAction(formData)
+        }} className="space-y-6">
             {/* Error message display */}
             {state?.error && (
                 <div className="p-4 bg-red-100 text-red-700 rounded-md">
@@ -66,6 +93,54 @@ export function ProductForm({ categories }: { categories: any[] }) {
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" name="description" rows={4} />
             </div>
+
+            {/* Specifications Section */}
+            <div className="space-y-4">
+                <Label>Specifications</Label>
+                {specifications.map((spec, index) => (
+                    <div key={index} className="grid grid-cols-12 gap-4 items-end">
+                        <div className="col-span-5 space-y-2">
+                            <Label htmlFor={`spec-name-${index}`}>Name</Label>
+                            <Input
+                                id={`spec-name-${index}`}
+                                value={spec.name}
+                                onChange={(e) => handleSpecChange(index, 'name', e.target.value)}
+                                placeholder="e.g., Size, Weight"
+                            />
+                        </div>
+                        <div className="col-span-5 space-y-2">
+                            <Label htmlFor={`spec-value-${index}`}>Value</Label>
+                            <Input
+                                id={`spec-value-${index}`}
+                                value={spec.value}
+                                onChange={(e) => handleSpecChange(index, 'value', e.target.value)}
+                                placeholder="e.g., Small, 500g"
+                            />
+                        </div>
+                        <div className="col-span-2">
+                            {specifications.length > 1 && (
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => removeSpecification(index)}
+                                >
+                                    Remove
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                ))}
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addSpecification}
+                >
+                    Add Specification
+                </Button>
+            </div>
+
 
             <div className="grid gap-6 md:grid-cols-3">
                 <div className="space-y-2">

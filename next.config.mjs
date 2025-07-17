@@ -7,7 +7,14 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    domains: ['yppwblvzooypyfvbtsiq.supabase.co'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'yppwblvzooypyfvbtsiq.supabase.co',
+        pathname: '/storage/v1/object/public/products/**',
+      },
+    ],
   },
 }
 

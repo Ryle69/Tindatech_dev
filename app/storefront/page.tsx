@@ -57,7 +57,7 @@ export default function StorefrontPage() {
                     price: product.price,
                     original_price: product.original_price,
                     category: product.Categories?.name || 'Uncategorized',
-                    image: product.image || "/placeholder.svg",
+                    image: product.image ? product.image : "/placeholder.svg",
                     badge: product.badge,
                     rating: product.rating || 0,
                     reviews: product.reviews || 0,
