@@ -13,10 +13,10 @@ import { Edit, Package, ShoppingBag, Star, TrendingUp, Users, LogOut, Crown, Eye
 import type { User } from "@supabase/supabase-js"
 import Link from "next/link"
 import { updateProfile, updateNewsletterSubscription, updatePassword } from "./actions"
-import { fetchOrders } from "./fetch-orders";
 import OrderHistory from "./OrderHistory";
 import { useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
+import {useSearchParams} from "next/navigation";
 
 interface UserProfile {
     id: number
@@ -35,6 +35,8 @@ interface ProfileClientProps {
 }
 
 export default function ProfileClient({ user, userProfile }: ProfileClientProps) {
+    const searchParams = useSearchParams()
+    const defaultTab = searchParams.get("tab") || 'profile'
     const [isEditing, setIsEditing] = useState(false)
     const [editedFirstName, setEditedFirstName] = useState(userProfile?.first_name || "")
     const [editedLastName, setEditedLastName] = useState(userProfile?.last_name || "")
@@ -366,7 +368,7 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                 </div>
 
                 {/* Tabs content */}
-                <Tabs defaultValue="profile" className="space-y-6">
+                <Tabs defaultValue={defaultTab} className="space-y-6">
                     <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="profile">Profile</TabsTrigger>
                         <TabsTrigger value="management">{isAdmin ? "User Management" : "Orders"}</TabsTrigger>

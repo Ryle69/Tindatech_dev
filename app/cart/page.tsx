@@ -7,59 +7,72 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useCart } from "@/contexts/CartContext"
 
 interface CartItem {
     id: number
+    cart_id: number
     product_id: number
     product_name: string
     product_price: number
-    product_image: string
+    product_image: string | null
     quantity: number
-    size?: string
-    color?: string
+    size?: string | null
+    color?: string | null
 }
 
 export default function CartPage() {
     const [cartItems, setCartItems] = useState<CartItem[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
     const supabase = createClient()
     const router = useRouter()
+    const { updateCartCount } = useCart()
 
     useEffect(() => {
         const fetchCart = async () => {
-            const { data: { user } } = await supabase.auth.getUser()
+            const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-            if (!user) {
+            if (authError || !user) {
                 router.push("/login?returnUrl=/cart")
                 return
             }
 
             try {
-                const { data, error } = await supabase
+                // First get the user's cart
+                const { data: cartData, error: cartError } = await supabase
                     .from("Carts")
+                    .select("id")
+                    .eq("user_id", user.id)
+                    .single()
+
+                if (cartError || !cartData) {
+                    setCartItems([])
+                    return
+                }
+
+                // Then get cart items with product details
+                const { data: itemsData, error: itemsError } = await supabase
+                    .from("CartItems")
                     .select(`
-                        CartItems (
+                        id,
+                        quantity,
+                        size,
+                        color,
+                        Products (
                             id,
-                            quantity,
-                            size,
-                            color,
-                            Products (
-                                id,
-                                name,
-                                price,
-                                image
-                            )
+                            name,
+                            price,
+                            image
                         )
                     `)
-                    .eq("user_id", user.id)
+                    .eq("cart_id", cartData.id)
 
-                if (error) throw error
+                if (itemsError) throw itemsError
 
-                console.log('Cart fetch result:', data);
-                // data is likely an array of carts, each with CartItems: []
-                const items = (data ?? []).flatMap((cart: any) => cart.CartItems ?? []).map((item: any) => ({
-
+                const items = (itemsData ?? []).map((item: any) => ({
                     id: item.id,
+                    cart_id: cartData.id,
                     product_id: item.Products.id,
                     product_name: item.Products.name,
                     product_price: item.Products.price,
@@ -67,17 +80,20 @@ export default function CartPage() {
                     quantity: item.quantity,
                     size: item.size,
                     color: item.color
-                }));
-                setCartItems(items);
+                }))
+
+                setCartItems(items)
+                setError(null)
             } catch (error) {
                 console.error("Error fetching cart:", error)
+                setError("Failed to load cart items. Please try again.")
             } finally {
                 setLoading(false)
             }
         }
 
         fetchCart()
-    }, [router])
+    }, [router, supabase])
 
     const updateQuantity = async (itemId: number, newQuantity: number) => {
         if (newQuantity < 1) return
@@ -93,8 +109,12 @@ export default function CartPage() {
             setCartItems(cartItems.map(item =>
                 item.id === itemId ? { ...item, quantity: newQuantity } : item
             ))
+
+            // Update cart count in context
+            await updateCartCount()
         } catch (error) {
             console.error("Error updating quantity:", error)
+            setError("Failed to update quantity. Please try again.")
         }
     }
 
@@ -108,8 +128,40 @@ export default function CartPage() {
             if (error) throw error
 
             setCartItems(cartItems.filter(item => item.id !== itemId))
+
+            // Update cart count in context
+            await updateCartCount()
         } catch (error) {
             console.error("Error removing item:", error)
+            setError("Failed to remove item. Please try again.")
+        }
+    }
+
+    const clearCart = async () => {
+        try {
+            const { data: { user }, error: authError } = await supabase.auth.getUser()
+            if (authError || !user) return
+
+            const { data: cartData, error: cartError } = await supabase
+                .from("Carts")
+                .select("id")
+                .eq("user_id", user.id)
+                .single()
+
+            if (cartError || !cartData) return
+
+            const { error } = await supabase
+                .from("CartItems")
+                .delete()
+                .eq("cart_id", cartData.id)
+
+            if (error) throw error
+
+            setCartItems([])
+            await updateCartCount()
+        } catch (error) {
+            console.error("Error clearing cart:", error)
+            setError("Failed to clear cart. Please try again.")
         }
     }
 
@@ -118,12 +170,33 @@ export default function CartPage() {
     )
 
     if (loading) {
-        return <div className="container px-4 py-8">Loading cart...</div>
+        return (
+            <div className="container px-4 py-8">
+                <div className="animate-pulse space-y-4">
+                    <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-32 bg-gray-200 rounded"></div>
+                    <div className="h-32 bg-gray-200 rounded"></div>
+                </div>
+            </div>
+        )
     }
 
     return (
         <div className="container px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">Your Shopping Cart</h1>
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-3xl font-bold">Your Shopping Cart</h1>
+                {cartItems.length > 0 && (
+                    <Button variant="outline" onClick={clearCart}>
+                        Clear Cart
+                    </Button>
+                )}
+            </div>
+
+            {error && (
+                <div className="bg-red-50 text-red-700 p-4 rounded mb-6">
+                    {error}
+                </div>
+            )}
 
             {cartItems.length === 0 ? (
                 <div className="text-center py-12">
@@ -155,6 +228,9 @@ export default function CartPage() {
                                                 src={item.product_image || "/placeholder.svg"}
                                                 alt={item.product_name}
                                                 className="w-16 h-16 object-cover rounded"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = "/placeholder.svg"
+                                                }}
                                             />
                                             <div>
                                                 <p className="font-medium">{item.product_name}</p>
@@ -162,17 +238,18 @@ export default function CartPage() {
                                                 {item.color && <p className="text-sm text-gray-600">Color: {item.color}</p>}
                                             </div>
                                         </TableCell>
-                                        <TableCell>${item.product_price}</TableCell>
+                                        <TableCell>${item.product_price.toFixed(2)}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <Button
                                                     variant="outline"
                                                     size="icon"
                                                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                    disabled={item.quantity <= 1}
                                                 >
                                                     <Minus className="h-4 w-4" />
                                                 </Button>
-                                                <span>{item.quantity}</span>
+                                                <span className="w-8 text-center">{item.quantity}</span>
                                                 <Button
                                                     variant="outline"
                                                     size="icon"
@@ -202,7 +279,7 @@ export default function CartPage() {
                         <h2 className="text-xl font-bold mb-4">Order Summary</h2>
                         <div className="space-y-4 mb-6">
                             <div className="flex justify-between">
-                                <span>Subtotal</span>
+                                <span>Subtotal ({cartItems.length} items)</span>
                                 <span>${subtotal.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between">
@@ -214,7 +291,12 @@ export default function CartPage() {
                                 <span>${subtotal.toFixed(2)}</span>
                             </div>
                         </div>
-                        <Button className="w-full">Proceed to Checkout</Button>
+                        <Button className="w-full mb-4" asChild>
+                            <Link href="/checkout">Proceed to Checkout</Link>
+                        </Button>
+                        <Button variant="outline" className="w-full" asChild>
+                            <Link href="/storefront">Continue Shopping</Link>
+                        </Button>
                     </div>
                 </div>
             )}

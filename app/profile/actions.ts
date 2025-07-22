@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/utils/supabase/server"
+import {cookies} from "next/headers";
 
 export async function updateProfile(formData: FormData) {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     const firstName = formData.get("firstName") as string
     const lastName = formData.get("lastName") as string
@@ -44,7 +46,8 @@ export async function updateProfile(formData: FormData) {
 }
 
 export async function updateNewsletterSubscription(formData: FormData) {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     const subscribeNewsletter = formData.get("subscribeNewsletter") === "true"
 
@@ -78,7 +81,8 @@ export async function updateNewsletterSubscription(formData: FormData) {
 }
 
 export async function updatePassword(formData: FormData) {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     const currentPassword = formData.get("currentPassword") as string
     const newPassword = formData.get("newPassword") as string

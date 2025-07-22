@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server"
 import { createServerClient } from "@supabase/ssr"
+import {cookies} from "next/headers";
 
 // Create service role client for admin actions
 function createServiceRoleClient() {
@@ -16,7 +17,8 @@ function createServiceRoleClient() {
 }
 
 export async function createEmployeeAccount(formData: FormData) {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     // Check if current user is admin
     const {
@@ -109,7 +111,8 @@ export async function createEmployeeAccount(formData: FormData) {
 }
 
 export async function updateEmployeeAccount(userId: string, formData: FormData) {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     // Check if current user is admin
     const {
@@ -169,7 +172,8 @@ export async function updateEmployeeAccount(userId: string, formData: FormData) 
 }
 
 export async function deleteEmployeeAccount(userId: string) {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     // Check if current user is admin
     const {
@@ -215,7 +219,8 @@ export async function deleteEmployeeAccount(userId: string) {
 }
 
 export async function getEmployeeAccounts() {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
 
     // Check if current user is admin
     const {

@@ -2,6 +2,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MapPin, Clock, Phone, Mail, Car, Train, Bus } from "lucide-react"
+import {MapLocation} from "@/components/mapStoreLocation";
 
 export default function VisitPage() {
   return (
@@ -33,11 +34,11 @@ export default function VisitPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  123 Modern Street
+                  4X86+XRH Olivarez Plaza
                   <br />
-                  Downtown District
+                  Aguinaldo Highway, Tagaytay City
                   <br />
-                  New York, NY 10001
+                  4120, Cavite, Philippines
                 </p>
               </CardContent>
             </Card>
@@ -52,16 +53,8 @@ export default function VisitPage() {
               <CardContent>
                 <div className="space-y-2 text-gray-600">
                   <div className="flex justify-between">
-                    <span>Monday - Friday:</span>
-                    <span>10:00 AM - 8:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Saturday:</span>
-                    <span>10:00 AM - 9:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Sunday:</span>
-                    <span>12:00 PM - 6:00 PM</span>
+                    <span>Monday - Sunday:</span>
+                    <span>8:00 AM - 8:00 PM</span>
                   </div>
                 </div>
               </CardContent>
@@ -74,11 +67,11 @@ export default function VisitPage() {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Phone className="h-4 w-4 text-gray-500" />
-                  <span>(555) 123-4567</span>
+                  <span>(+63) 999-999-9999</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="h-4 w-4 text-gray-500" />
-                  <span>store@modernstore.com</span>
+                  <span>kiwangcherryl@outlook.com</span>
                 </div>
               </CardContent>
             </Card>
@@ -143,13 +136,7 @@ export default function VisitPage() {
 
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Find Us</h2>
-          <div className="bg-gray-200 h-96 rounded-lg flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <MapPin className="h-12 w-12 mx-auto mb-4" />
-              <p>Interactive map would be embedded here</p>
-              <p className="text-sm">123 Modern Street, New York, NY 10001</p>
-            </div>
-          </div>
+          <MapLocation />
         </div>
 
         <div className="mb-12">
@@ -190,16 +177,24 @@ export default function VisitPage() {
         </div>
 
         {/* Call to Action */}
-        <div className="text-center bg-gray-50 p-8 rounded-lg">
-          <h2 className="text-2xl font-bold mb-4">Plan Your Visit</h2>
-          <p className="text-gray-600 mb-6">
-            Book a personal shopping appointment or just drop by during our store hours.
+        <div className="text-center bg-black text-white p-12 rounded-lg">
+          <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
+          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg">Book Appointment</Button>
-            <Button size="lg" variant="outline">
-              Get Directions
-            </Button>
+            <a
+                href="mailto:kiwangcherryl@gmail.com"
+                className="bg-white text-black px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors"
+            >
+              Contact Us
+            </a>
+            <a
+                href="/visit"
+                className="border border-white text-white px-6 py-3 rounded-md font-medium hover:bg-white hover:text-black transition-colors"
+            >
+              Visit Our Store
+            </a>
           </div>
         </div>
       </div>

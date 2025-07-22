@@ -10,6 +10,8 @@ interface FormState {
     success?: boolean;
 }
 
+
+
 export async function createProduct(prevState: FormState, formData: FormData): Promise<FormState> {
     const cookieStore = cookies()
     const supabase = await createClient(cookieStore) // Add await here
@@ -28,7 +30,6 @@ export async function createProduct(prevState: FormState, formData: FormData): P
         const trackInventory = formData.get("trackInventory") === "on"
         const isActive = formData.get("isActive") === "on"
         const isFeatured = formData.get("isFeatured") === "on"
-        const imageFile = formData.get("image") as File
 
         // Validate required fields
         if (!name || !price) {
@@ -40,40 +41,64 @@ export async function createProduct(prevState: FormState, formData: FormData): P
 
         // Handle image upload if provided
         let imageUrl = null
+        const imageFile = formData.get("image") as File
+
         if (imageFile && imageFile.size > 0) {
+            const fileName = `${Date.now()}-${imageFile.name.replace(/\s+/g, '-')}`
+            const filePath = `${fileName}`
+
+            // Upload the file
             const { data: uploadData, error: uploadError } = await supabase.storage
-                .from("products")
-                .upload(`products/${Date.now()}-${imageFile.name}`, imageFile)
+                .from('products')
+                .upload(filePath, imageFile)
 
-            if (uploadError) {
-                return {
-                    error: "Failed to upload image",
-                    success: false
-                }
-            }
+            if (uploadError) throw uploadError
 
-            imageUrl = uploadData.path
+            // Get the public URL - use this specific format
+            imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/products/${fileName}`
+
+            console.log('Image uploaded to:', imageUrl) // For debugging
         }
+
+        // Process specifications
+        const specifications: Record<string, string> = {}
+        let index = 0
+        while (formData.has(`specifications[${index}][name]`)) {
+            const name = formData.get(`specifications[${index}][name]`) as string
+            const value = formData.get(`specifications[${index}][value]`) as string
+            if (name && value) {
+                specifications[name] = value
+            }
+            index++
+        }
+
+        const slug = name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "")
 
         // Create product in database
         const { error: insertError } = await supabase.from("Products").insert({
-            name,
-            sku,
-            description,
-            price,
-            compare_price: comparePrice,
-            cost_price: costPrice,
-            category_id: categoryId,
-            inventory_quantity: inventoryQuantity,
-            low_stock_threshold: lowStockThreshold,
-            track_inventory: trackInventory,
-            is_active: isActive,
-            is_featured: isFeatured,
-            image_url: imageUrl,
+            name: formData.get("name") as string,
+            sku: formData.get("sku") as string,
+            description: formData.get("description") as string,
+            specifications,
+            slug,
+            price: parseFloat(formData.get("price") as string),
+            compare_price: formData.get("comparePrice") ? parseFloat(formData.get("comparePrice") as string) : null,
+            cost_price: formData.get("costPrice") ? parseFloat(formData.get("costPrice") as string) : null,
+            category_id: formData.get("categoryId") as string,
+            inventory_quantity: parseInt(formData.get("inventoryQuantity") as string) || 0,
+            low_stock_threshold: parseInt(formData.get("lowStockThreshold") as string) || 0,
+            track_inventory: formData.get("trackInventory") === "on",
+            is_active: formData.get("isActive") === "on",
+            is_featured: formData.get("isFeatured") === "on",
+            image: imageUrl,
             created_at: new Date().toISOString(),
         })
 
         if (insertError) {
+            console.error('Insert error:', insertError)
             return {
                 error: insertError.message,
                 success: false
@@ -84,6 +109,7 @@ export async function createProduct(prevState: FormState, formData: FormData): P
             success: true
         }
     } catch (error: any) {
+        console.error('General error:', error)
         return {
             error: error.message || "Failed to create product",
             success: false
@@ -162,7 +188,7 @@ export async function deleteProduct(productId: number) {
 
 export async function toggleProductStatus(productId: number, isActive: boolean) {
     const cookieStore = cookies()
-    const supabase = await createClient(cookieStore) // Add await here
+    const supabase = await createClient(cookieStore)
 
     try {
         const { error } = await supabase
