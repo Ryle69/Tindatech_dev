@@ -1,0 +1,73 @@
+import { createClient } from "@/utils/supabase/server"
+import { redirect } from "next/navigation"
+import {cookies} from "next/headers";
+
+export async function requireEmployee() {
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
+
+    const {
+        data: { user },
+        error,
+    } = await supabase.auth.getUser()
+
+    if (error || !user) {
+        redirect("/login")
+    }
+
+    // Now that RLS is disabled, we can query directly with regular client
+    const { data: userProfile, error: profileError } = await supabase
+        .from("Users")
+        .select("role")
+        .eq("auth_id", user.id)
+        .single()
+
+    console.log("🔍 Employee Check - User:", user.id, "Profile:", userProfile, "Error:", profileError)
+
+    if (profileError || !userProfile || userProfile.role !== "employee") {
+        console.log("❌ Employee check failed - redirecting to profile")
+        redirect("/profile") // Redirect non-admins to their profile
+    }
+
+    console.log("✅ Employee check passed")
+    return { user, userProfile }
+}
+
+export async function getEmployeeData() {
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
+
+    // Get dashboard stats
+    const [
+        { count: totalProducts },
+        { count: totalOrders },
+        { count: totalCustomers },
+        { data: recentOrders },
+        { data: lowStockProducts },
+    ] = await Promise.all([
+        supabase.from("Products").select("*", { count: "exact", head: true }),
+        supabase.from("Orders").select("*", { count: "exact", head: true }),
+        supabase.from("Users").select("*", { count: "exact", head: true }).eq("role", "customer"),
+        supabase
+            .from("Orders")
+            .select("id, order_number, total_amount, status, created_at")
+            .order("created_at", { ascending: false })
+            .limit(5),
+        supabase
+            .from("Products")
+            .select("id, name, inventory_quantity, low_stock_threshold")
+            .lt("inventory_quantity", 10)
+            .eq("track_inventory", true)
+            .limit(5),
+    ])
+
+    return {
+        stats: {
+            totalProducts: totalProducts || 0,
+            totalOrders: totalOrders || 0,
+            totalCustomers: totalCustomers || 0,
+        },
+        recentOrders: recentOrders || [],
+        lowStockProducts: lowStockProducts || [],
+    }
+}

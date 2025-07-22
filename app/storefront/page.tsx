@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Star, Filter } from "lucide-react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { useRouter } from "next/navigation"
+import {useParams, useRouter} from "next/navigation"
 
 interface Product {
     id: number
@@ -32,6 +32,7 @@ export default function StorefrontPage() {
     const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+    const [reviewsCount, setReviewsCount] = useState(0)
     const [sortBy, setSortBy] = useState("featured")
     const [categories, setCategories] = useState<string[]>([])
 
@@ -51,19 +52,30 @@ export default function StorefrontPage() {
 
                 if (productsError) throw productsError
 
-                const transformedProducts = productsData.map((product: any) => ({
-                    id: product.id,
-                    name: product.name,
-                    price: product.price,
-                    original_price: product.original_price,
-                    category: product.Categories?.name || 'Uncategorized',
-                    image: product.image ? product.image : "/placeholder.svg",
-                    badge: product.badge,
-                    rating: product.rating || 0,
-                    reviews: product.reviews || 0,
-                    created_at: product.created_at,
-                    is_active: product.is_active
-                }))
+                const transformedProducts = productsData.map((product: any) => {
+                    let imageUrl = "/placeholder.svg";
+
+                    if (product.image) {
+                        if (typeof product.image == "string") {
+                            imageUrl = product.image
+                        } else if (product.image.url) {
+                            imageUrl = product.image.url
+                        }
+                    }
+                    return {
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        original_price: product.original_price,
+                        category: product.Categories?.name || 'Uncategorized',
+                        image: imageUrl,
+                        badge: product.badge,
+                        rating: product.rating || 0,
+                        reviews: reviewsCount,
+                        created_at: product.created_at,
+                        is_active: product.is_active
+                    }
+                })
 
                 setProducts(transformedProducts)
 
@@ -71,6 +83,48 @@ export default function StorefrontPage() {
                     new Set(transformedProducts.map(p => p.category))
                 )
                 setCategories(uniqueCategories)
+
+                // Then fetch reviews count for each product
+                const productsWithReviews = await Promise.all(
+                    productsData.map(async (product: any) => {
+                        const { data: orderItems } = await supabase
+                            .from('OrderItems')
+                            .select('order_id')
+                            .eq('product_id', product.id)
+
+                        let reviewsCount = 0
+                        let totalRating = 0
+
+                        if (orderItems && orderItems.length > 0) {
+                            const orderIds = orderItems.map(item => item.order_id)
+                            const { data: reviewsData } = await supabase
+                                .from('Reviews')
+                                .select('rating')
+                                .in('order_id', orderIds)
+
+                            if (reviewsData && reviewsData.length > 0) {
+                                reviewsCount = reviewsData.length
+                                totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0)
+                            }
+                        }
+
+                        return {
+                            id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            original_price: product.original_price,
+                            category: product.Categories?.name || 'Uncategorized',
+                            image: product.image ? product.image : "/placeholder.svg",
+                            badge: product.badge,
+                            rating: reviewsCount > 0 ? totalRating / reviewsCount : 0,
+                            reviews: reviewsCount,
+                            created_at: product.created_at,
+                            is_active: product.is_active
+                        }
+                    })
+                )
+
+                setProducts(productsWithReviews)
 
             } catch (error) {
                 console.error("Error fetching data:", error)
@@ -221,7 +275,7 @@ export default function StorefrontPage() {
                                                     className={`h-4 w-4 ${i < Math.floor(product.rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
                                                 />
                                             ))}
-                                            <span className="text-sm text-gray-600 ml-2">({product.reviews || 0})</span>
+                                            <span className="text-sm text-gray-600 ml-2">({product.reviews})</span>
                                         </div>
                                         <Link href={`/product/${product.id}`}>
                                             <Button className="w-full">View Product</Button>

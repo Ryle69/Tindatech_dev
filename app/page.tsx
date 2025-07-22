@@ -10,50 +10,26 @@ import {useEffect, useState} from "react";
 import {createClientComponentClient} from "@supabase/auth-helpers-nextjs";
 import {useRouter} from "next/navigation";
 
+interface Product {
+  id: number
+  name: string
+  price: number
+  original_price?: number
+  category: string
+  image: string
+  badge?: string
+  rating?: number
+  reviews?: number
+  created_at: string
+  is_active: boolean
+}
+
 export default function HomePage() {
-  const featuredProducts = [
-    {
-      id: 1,
-      name: "Premium Wireless Headphones",
-      price: 299,
-      originalPrice: 399,
-      image: "/placeholder.svg?height=300&width=300",
-      badge: "Best Seller",
-    },
-    {
-      id: 2,
-      name: "Smart Fitness Watch",
-      price: 199,
-      image: "/placeholder.svg?height=300&width=300",
-      badge: "New",
-    },
-    {
-      id: 3,
-      name: "Minimalist Backpack",
-      price: 89,
-      image: "/placeholder.svg?height=300&width=300",
-      badge: "Featured",
-    },
-  ]
-
-  interface Product {
-    id: number
-    name: string
-    price: number
-    original_price?: number
-    category: string
-    image: string
-    badge?: string
-    rating?: number
-    reviews?: number
-    created_at: string
-    is_active: boolean
-  }
-
   const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [ reviewsCount, setReviewsCount ] = useState(0)
   const [sortBy, setSortBy] = useState("featured")
   const [categories, setCategories] = useState<string[]>([])
 
@@ -73,21 +49,74 @@ export default function HomePage() {
 
         if (productsError) throw productsError
 
-        const transformedProducts = productsData.map((product: any) => ({
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          original_price: product.original_price,
-          category: product.Categories?.name || 'Uncategorized',
-          image: product.image || "/placeholder.svg",
-          badge: product.badge,
-          rating: product.rating || 0,
-          reviews: product.reviews || 0,
-          created_at: product.created_at,
-          is_active: product.is_active
-        }))
+        const transformedProducts = productsData.map((product: any) => {
+          let imageUrl = "/placeholder.svg";
+
+          if (product.image) {
+            if (typeof product.image == "string") {
+              imageUrl = product.image
+            } else if (product.image.url) {
+              imageUrl = product.image.url
+            }
+          }
+          return {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            original_price: product.original_price,
+            category: product.Categories?.name || 'Uncategorized',
+            image: imageUrl,
+            badge: product.badge,
+            rating: product.rating || 0,
+            reviews: reviewsCount,
+            created_at: product.created_at,
+            is_active: product.is_active
+          }
+        })
 
         setProducts(transformedProducts)
+
+        // Then fetch reviews count for each product
+        const productsWithReviews = await Promise.all(
+            productsData.map(async (product: any) => {
+              const { data: orderItems } = await supabase
+                  .from('OrderItems')
+                  .select('order_id')
+                  .eq('product_id', product.id)
+
+              let reviewsCount = 0
+              let totalRating = 0
+
+              if (orderItems && orderItems.length > 0) {
+                const orderIds = orderItems.map(item => item.order_id)
+                const { data: reviewsData } = await supabase
+                    .from('Reviews')
+                    .select('rating')
+                    .in('order_id', orderIds)
+
+                if (reviewsData && reviewsData.length > 0) {
+                  reviewsCount = reviewsData.length
+                  totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0)
+                }
+              }
+
+              return {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                original_price: product.original_price,
+                category: product.Categories?.name || 'Uncategorized',
+                image: product.image ? product.image : "/placeholder.svg",
+                badge: product.badge,
+                rating: reviewsCount > 0 ? totalRating / reviewsCount : 0,
+                reviews: reviewsCount,
+                created_at: product.created_at,
+                is_active: product.is_active
+              }
+            })
+        )
+
+        setProducts(productsWithReviews)
 
         const uniqueCategories = Array.from(
             new Set(transformedProducts.map(p => p.category))
@@ -103,6 +132,20 @@ export default function HomePage() {
 
     fetchData()
   }, [])
+
+  const featuredProducts = products
+      .filter(product => product.is_active)
+      .sort((a, b) => {
+        // Fallback to current date if created_at is invalid
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : Date.now()
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : Date.now()
+        return dateB - dateA // Sort newest first
+      })
+      .slice(0, 3)
+
+  if (loading) {
+    return <div className="container px-4 py-8">Loading products...</div>
+  }
 
   return (
     <div className="flex flex-col">
@@ -175,38 +218,41 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {featuredProducts.map((product) => (
-              <Card key={product.id} className="group cursor-pointer hover:shadow-lg transition-shadow">
-                <CardContent className="p-0">
-                  <div className="relative">
-                    <Image
-                      src={product.image || "/placeholder.svg"}
-                      alt={product.name}
-                      width={300}
-                      height={300}
-                      className="w-full h-64 object-cover rounded-t-lg"
-                    />
-                    <Badge className="absolute top-4 left-4">{product.badge}</Badge>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-2xl font-bold">${product.price}</span>
-                      {product.originalPrice && (
-                        <span className="text-gray-500 line-through">${product.originalPrice}</span>
-                      )}
+                <Card key={product.id} className="group cursor-pointer hover:shadow-lg transition-shadow">
+                  <CardContent className="p-0">
+                    <div className="relative">
+                      <Image
+                          src={product.image}
+                          alt={product.name}
+                          width={300}
+                          height={300}
+                          className="w-full h-64 object-cover rounded-t-lg"
+                      />
+                      {product.badge && <Badge className="absolute top-4 left-4">{product.badge}</Badge>}
                     </div>
-                    <div className="flex items-center gap-1 mb-4">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                      <span className="text-sm text-gray-600 ml-2">(24 reviews)</span>
+                    <div className="p-6">
+                      <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl font-bold">${product.price}</span>
+                        {product.original_price && (
+                            <span className="text-gray-500 line-through">${product.original_price}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 mb-4">
+                        {[...Array(5)].map((_, i) => (
+                            <Star
+                                key={i}
+                                className={`h-4 w-4 ${i < Math.floor(product.rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                            />
+                        ))}
+                        <span className="text-sm text-gray-600 ml-2">({product.reviews})</span>
+                      </div>
+                      <Link href={`/product/${product.id}`}>
+                        <Button className="w-full">View Product</Button>
+                      </Link>
                     </div>
-                    <Link href={`/product/${product.id}`}>
-                      <Button className="w-full">View Product</Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
             ))}
           </div>
 
@@ -221,16 +267,36 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Newsletter */}
+      {/* Social Media Call-to-Action */}
       <section className="py-16 bg-[#D86304] text-white">
         <div className="container px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
+          <h2 className="text-3xl font-bold mb-4">Connect With Us</h2>
           <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-            Subscribe to our newsletter and be the first to know about new products and exclusive offers.
+            Follow us on social media for the latest updates, new arrivals, and exclusive offers!
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input type="email" placeholder="Enter your email" className="flex-1 px-4 py-2 rounded-md text-black" />
-            <Button className="bg-white text-black hover:bg-gray-100">Subscribe</Button>
+          <div className="flex justify-center gap-6">
+            <a
+                href="https://www.facebook.com/profile.php?id=61571582326338"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white text-[#D86304] hover:bg-gray-100 rounded-full p-3 transition-all hover:scale-110"
+                aria-label="Facebook"
+            >
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/>
+              </svg>
+            </a>
+            <a
+                href="https://www.instagram.com/_cherylls/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white text-[#D86304] hover:bg-gray-100 rounded-full p-3 transition-all hover:scale-110"
+                aria-label="Instagram"
+            >
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+              </svg>
+            </a>
           </div>
         </div>
       </section>

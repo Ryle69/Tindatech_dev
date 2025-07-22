@@ -19,7 +19,7 @@ export function MapLocation() {
                 const { AdvancedMarkerElement } = await loader.importLibrary('marker')
 
                 // Coordinates of Store
-                const position = { lat: 14.11740493774414, lng: 120.96233367919922 }
+                const position = { lat: 14.117428, lng: 120.962102 }
 
                 const map = new Map(mapRef.current!, {
                     center: position,

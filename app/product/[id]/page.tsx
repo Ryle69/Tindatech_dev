@@ -43,7 +43,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1)
   const [selectedSize, setSelectedSize] = useState("")
   const [selectedColor, setSelectedColor] = useState("")
-  const [selectedImage, setSelectedImage] = useState(0)
+  const [selectedImage, setSelectedImage] = useState("")
   const [reviewsCount, setReviewsCount] = useState(0)
   const [averageRating, setAverageRating] = useState(0)
   const [addingToCart, setAddingToCart] = useState(false)
