@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/utils/admin-middleware"
+import { requireEmployee } from "@/utils/employee-middleware"
 import { createClient } from "@/utils/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -7,15 +7,16 @@ import { Input } from "@/components/ui/input"
 import { Plus, Search, Package } from "lucide-react"
 import Link from "next/link"
 import { CategoryActions } from "./components/category-actions"
+import {cookies} from "next/headers";
 
 export default async function CategoriesPage({
                                                  searchParams,
                                              }: {
     searchParams: { success?: string; error?: string; search?: string }
 }) {
-    await requireAdmin()
+    await requireEmployee()
 
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
     const searchTerm = searchParams.search || ""
 
     let query = supabase
@@ -54,7 +55,7 @@ export default async function CategoriesPage({
                     <p className="text-gray-600">Organize your products into categories</p>
                 </div>
                 <Button asChild className="gap-2">
-                    <Link href="/admin/categories/new">
+                    <Link href="/employee/categories/new">
                         <Plus className="h-4 w-4" />
                         Add Category
                     </Link>

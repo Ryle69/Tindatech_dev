@@ -4,6 +4,64 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/utils/supabase/server"
 import {cookies} from "next/headers";
 
+export async function uploadProfilePicture(formData: FormData) {
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
+
+    try {
+        const imageFile = formData.get("image") as File
+
+        if (!imageFile || imageFile.size === 0) {
+            return { error: "No image file provided" }
+        }
+
+        // Validate file
+        if (imageFile.size > 5 * 1024 * 1024) {
+            return { error: "Image size must be less than 5MB" }
+        }
+
+        // Get current user with auth session
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+            return { error: "Not authenticated" }
+        }
+
+        // Generate unique filename
+        const fileExt = imageFile.name.split('.').pop()
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`
+        const filePath = `${fileName}`
+
+        // Upload with RLS-aware client
+        const { error: uploadError } = await supabase.storage
+            .from('users')
+            .upload(filePath, imageFile, {
+                upsert: true // Overwrite if file exists
+            })
+
+        if (uploadError) throw uploadError
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('users')
+            .getPublicUrl(filePath)
+
+        // Update user record - this is where RLS matters
+        const { error: updateError } = await supabase
+            .from('Users')
+            .update({ image: publicUrl })
+            .eq('auth_id', user.id)
+            .select() // Needed for RLS to work with updates
+
+        if (updateError) throw updateError
+
+        revalidatePath('/profile')
+        return { success: true, imageUrl: publicUrl }
+    } catch (error: any) {
+        console.error('Profile picture upload error:', error)
+        return { error: error.message || "Failed to upload profile picture" }
+    }
+}
+
 export async function updateProfile(formData: FormData) {
     const cookieStore = cookies()
     const supabase = await createClient(cookieStore)

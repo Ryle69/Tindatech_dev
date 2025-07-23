@@ -151,7 +151,7 @@ export function ProductForm({ categories }: { categories: any[] }) {
             <div className="flex gap-4">
                 <SubmitButton />
                 <Button type="button" variant="outline" asChild>
-                    <Link href="/admin/products">Cancel</Link>
+                    <Link href="/employee/products">Cancel</Link>
                 </Button>
             </div>
         </form>

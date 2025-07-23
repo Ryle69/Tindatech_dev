@@ -32,7 +32,7 @@ export function ProductActions({ product }: ProductActionsProps) {
                 </Button>
             </form>
             <Button variant="outline" size="sm" asChild>
-                <Link href={`/admin/products/${product.id}/edit`}>
+                <Link href={`/employee/products/${product.id}/edit`}>
                     <Edit className="h-4 w-4" />
                 </Link>
             </Button>

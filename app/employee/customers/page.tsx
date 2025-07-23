@@ -1,20 +1,20 @@
-import { requireAdmin } from "@/utils/admin-middleware"
 import { createClient } from "@/utils/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Mail, Calendar, Search } from "lucide-react"
-import { CustomerActions } from "./components/customer-actions"
+import {cookies} from "next/headers";
+import {requireEmployee} from "@/utils/employee-middleware";
 
 export default async function CustomersPage({
                                               searchParams,
                                             }: {
   searchParams: { success?: string; error?: string; search?: string }
 }) {
-  await requireAdmin()
+  await requireEmployee()
 
-  const supabase = await createClient()
+  const supabase = await createClient(cookies())
   const searchTerm = searchParams.search || ""
 
   let query = supabase.from("Users").select("*").eq("role", "customer").order("created_at", { ascending: false })
@@ -71,7 +71,6 @@ export default async function CustomersPage({
                   <th className="text-left py-3 px-4 font-medium">Email</th>
                   <th className="text-left py-3 px-4 font-medium">Newsletter</th>
                   <th className="text-left py-3 px-4 font-medium">Joined</th>
-                  <th className="text-left py-3 px-4 font-medium">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -101,9 +100,6 @@ export default async function CustomersPage({
                           <Calendar className="h-4 w-4 text-gray-400" />
                           <span>{new Date(customer.created_at).toLocaleDateString()}</span>
                         </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <CustomerActions customer={customer} />
                       </td>
                     </tr>
                 ))}

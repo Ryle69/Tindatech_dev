@@ -32,7 +32,7 @@ export function CategoryActions({ category }: CategoryActionsProps) {
                 </Button>
             </form>
             <Button variant="outline" size="sm" asChild>
-                <Link href={`/admin/categories/${category.id}/edit`}>
+                <Link href={`/employee/categories/${category.id}/edit`}>
                     <Edit className="h-4 w-4" />
                 </Link>
             </Button>

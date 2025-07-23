@@ -26,7 +26,7 @@ export async function requireEmployee() {
 
     if (profileError || !userProfile || userProfile.role !== "employee") {
         console.log("❌ Employee check failed - redirecting to profile")
-        redirect("/profile") // Redirect non-admins to their profile
+        redirect("/profile")
     }
 
     console.log("✅ Employee check passed")

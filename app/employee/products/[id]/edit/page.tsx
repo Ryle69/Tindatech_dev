@@ -1,4 +1,3 @@
-import { requireAdmin } from "@/utils/admin-middleware"
 import { createClient } from "@/utils/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,12 +11,13 @@ import Link from "next/link"
 import { updateProduct } from "../../actions"
 import { notFound } from "next/navigation"
 import {cookies} from "next/headers";
+import {requireEmployee} from "@/utils/employee-middleware";
 
 export default async function EditProductPage({ params, searchParams, }: {
     params: { id: string }
     searchParams: { error?: string }
 }) {
-    await requireAdmin()
+    await requireEmployee()
 0
     const cookieStore = cookies()
     const supabase = await createClient(cookieStore) // Add await here
@@ -37,7 +37,7 @@ export default async function EditProductPage({ params, searchParams, }: {
     return (
         <div className="p-6">
             <div className="mb-6 flex items-center gap-4">
-                <Link href="/admin/products">
+                <Link href="/employee/products">
                     <Button variant="outline" size="sm" className="gap-2 bg-transparent">
                         <ArrowLeft className="h-4 w-4" />
                         Back to Products
@@ -187,7 +187,7 @@ export default async function EditProductPage({ params, searchParams, }: {
                         <div className="flex gap-4">
                             <Button type="submit">Update Product</Button>
                             <Button type="button" variant="outline" asChild>
-                                <Link href="/admin/products">Cancel</Link>
+                                <Link href="/employee/products">Cancel</Link>
                             </Button>
                         </div>
                     </form>

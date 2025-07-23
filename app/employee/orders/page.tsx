@@ -1,14 +1,14 @@
-import { requireAdmin } from "@/utils/admin-middleware"
 import { createClient } from "@/utils/supabase/server"
 import OrdersClient from "./OrdersClient";
 import {cookies} from "next/headers";
+import {requireEmployee} from "@/utils/employee-middleware";
 
 export default async function OrdersPage({
   searchParams,
 }: {
   searchParams: { search?: string; status?: string }
 }) {
-  await requireAdmin();
+  await requireEmployee();
   const cookieStore = cookies();
   const supabase = await createClient(cookieStore);
   const searchTerm = searchParams.search || "";

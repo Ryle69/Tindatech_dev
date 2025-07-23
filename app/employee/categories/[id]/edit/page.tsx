@@ -1,4 +1,3 @@
-import { requireAdmin } from "@/utils/admin-middleware"
 import { createClient } from "@/utils/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,6 +9,8 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { updateCategory } from "../../actions"
 import { notFound } from "next/navigation"
+import {requireEmployee} from "@/utils/employee-middleware";
+import {cookies} from "next/headers";
 
 export default async function EditCategoryPage({
                                                    params,
@@ -18,9 +19,9 @@ export default async function EditCategoryPage({
     params: { id: string }
     searchParams: { error?: string }
 }) {
-    await requireAdmin()
+    await requireEmployee()
 
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
     const categoryId = Number.parseInt(params.id)
 
     const { data: category } = await supabase.from("Categories").select("*").eq("id", categoryId).single()
@@ -34,7 +35,7 @@ export default async function EditCategoryPage({
     return (
         <div className="p-6">
         <div className="mb-6 flex items-center gap-4">
-        <Link href="/admin/categories">
+        <Link href="/employee/categories">
         <Button variant="outline" size="sm" className="gap-2 bg-transparent">
     <ArrowLeft className="h-4 w-4" />
         Back to Categories
@@ -80,7 +81,7 @@ export default async function EditCategoryPage({
     <div className="flex gap-4">
     <Button type="submit">Update Category</Button>
     <Button type="button" variant="outline" asChild>
-    <Link href="/admin/categories">Cancel</Link>
+    <Link href="/employee/categories">Cancel</Link>
         </Button>
         </div>
         </form>

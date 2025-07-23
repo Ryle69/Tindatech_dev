@@ -1,13 +1,13 @@
 import type React from "react"
-import { requireAdmin } from "@/utils/admin-middleware"
 import EmpSidebar from "./components/emp-sidebar"
+import {requireEmployee} from "@/utils/employee-middleware";
 
 export default async function AdminLayout({
                                               children,
                                           }: {
     children: React.ReactNode
 }) {
-    await requireAdmin()
+    await requireEmployee()
 
     return (
         <div className="flex h-screen bg-gray-100">

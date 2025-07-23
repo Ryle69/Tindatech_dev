@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button"
 import { LayoutDashboard, Package, Users, BarChart3, Settings, LogOut, Crown, Folder, UserCog } from "lucide-react"
 
 const navigation = [
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Orders", href: "/admin/orders", icon: Package },
-    { name: "Products", href: "/admin/products", icon: Package },
-    { name: "Categories", href: "/admin/categories", icon: Folder },
-    { name: "Customers", href: "/admin/customers", icon: Users },
+    { name: "Dashboard", href: "/employee", icon: LayoutDashboard },
+    { name: "Orders", href: "/employee/orders", icon: Package },
+    { name: "Products", href: "/employee/products", icon: Package },
+    { name: "Categories", href: "/employee/categories", icon: Folder },
+    { name: "Customers", href: "/employee/customers", icon: Users },
 ]
 
 export default function EmpSidebar() {

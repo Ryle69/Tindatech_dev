@@ -137,10 +137,10 @@ export async function updateProduct(productId: number, formData: FormData) {
 
         if (error) throw error
 
-        revalidatePath("/admin/products")
-        redirect("/admin/products?success=Product updated successfully")
+        revalidatePath("/employee/products")
+        redirect("/employee/products?success=Product updated successfully")
     } catch (error: any) {
-        redirect(`/admin/products/${productId}/edit?error=${encodeURIComponent(error.message)}`)
+        redirect(`/employee/products/${productId}/edit?error=${encodeURIComponent(error.message)}`)
     }
 }
 
@@ -153,10 +153,10 @@ export async function deleteProduct(productId: number) {
 
         if (error) throw error
 
-        revalidatePath("/admin/products")
-        redirect("/admin/products?success=Product deleted successfully")
+        revalidatePath("/employee/products")
+        redirect("/employee/products?success=Product deleted successfully")
     } catch (error: any) {
-        redirect(`/admin/products?error=${encodeURIComponent(error.message)}`)
+        redirect(`/employee/products?error=${encodeURIComponent(error.message)}`)
     }
 }
 
@@ -172,7 +172,7 @@ export async function toggleProductStatus(productId: number, isActive: boolean) 
 
         if (error) throw error
 
-        revalidatePath("/admin/products")
+        revalidatePath("/employee/products")
     } catch (error: any) {
     }
 }

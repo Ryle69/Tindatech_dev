@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, Search } from "lucide-react";
-import { AdminOrderModal } from "./AdminOrderModal";
+import { EmployeeOrderModal } from "./EmployeeOrderModal";
 
 interface OrderItem {
   id: number;
@@ -224,7 +224,7 @@ export default function OrdersClient({ orders, searchTerm = "", statusFilter = "
         </CardContent>
       </Card>
       {modalOpen && selectedOrder && (
-        <AdminOrderModal
+        <EmployeeOrderModal
           order={selectedOrder}
           orderItems={orderItems}
           open={modalOpen}
