@@ -1,4 +1,3 @@
-// app/api/payments/create-payment-intent/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import PayMongoAPI, { convertToCentavos } from '@/utils/paymongo';
 
@@ -31,11 +30,8 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { amount, currency = 'PHP', paymentMethod, description, metadata } = body;
-
-        // Convert amount to centavos
         const amountInCentavos = convertToCentavos(amount);
 
-        // Define allowed payment methods based on selection
         let paymentMethodsAllowed = ['card'];
         if (paymentMethod === 'gcash') {
             paymentMethodsAllowed = ['gcash'];
@@ -47,8 +43,8 @@ export async function POST(request: NextRequest) {
             amount: amountInCentavos,
             currency,
             payment_method_allowed: paymentMethodsAllowed,
-            description: description || 'Online Store Purchase',
-            statement_descriptor: 'YOURSTORE',
+            description: description || "Cheryll's Fashion Boutique Purchase",
+            statement_descriptor: "Cheryll's Fashion Boutique",
             metadata: metadata ? flattenMetadata(metadata) : {}
         };
 

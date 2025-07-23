@@ -1,4 +1,3 @@
-// app/api/payments/create-checkout-session/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import PayMongoAPI, { convertToCentavos } from '@/utils/paymongo';
 
@@ -12,7 +11,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { items, paymentMethod, orderId, description } = body;
 
-        // Convert items to PayMongo line items format
+        // Follow PayMongo line items format
         const lineItems = items.map((item: any) => ({
             name: item.product_name,
             quantity: item.quantity,

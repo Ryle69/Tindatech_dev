@@ -1,4 +1,3 @@
-// app/api/payments/attach-payment-method/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import PayMongoAPI from '@/utils/paymongo';
 import { createClient } from '@/utils/supabase/server';
@@ -16,14 +15,14 @@ export async function POST(request: NextRequest) {
 
         const result = await payMongo.attachPaymentMethod(paymentIntentId, paymentMethodId, clientKey);
 
-        // If payment is successful, update order status
+        // Payment successful -> update order status
         if (result.data.attributes.status === 'succeeded') {
             const supabase = await createClient(cookies());
 
             await supabase
                 .from('Orders')
                 .update({
-                    status: 'confirmed',
+                    status: 'pending',
                     payment_status: 'paid',
                     payment_id: result.data.id,
                     updated_at: new Date().toISOString()

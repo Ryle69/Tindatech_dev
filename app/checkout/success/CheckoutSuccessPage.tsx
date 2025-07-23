@@ -32,7 +32,6 @@ export default function CheckoutSuccessPage() {
             }
 
             try {
-                // Fetch order details
                 const { data: orderData, error: orderError } = await supabase
                     .from('Orders')
                     .select('id, status, payment_status, total_amount, created_at')
@@ -55,10 +54,8 @@ export default function CheckoutSuccessPage() {
 
         fetchOrderStatus()
 
-        // Poll for payment status updates (in case webhook hasn't processed yet)
         const pollInterval = setInterval(fetchOrderStatus, 3000)
 
-        // Clear interval after 30 seconds
         const timeout = setTimeout(() => {
             clearInterval(pollInterval)
         }, 30000)
