@@ -49,7 +49,7 @@ interface Order {
   updated_at?: string;
 }
 
-interface AdminOrderModalProps {
+interface EmployeeOrderModalProps {
   order: Order;
   orderItems: OrderItem[];
   open: boolean;
@@ -76,7 +76,7 @@ const paymentStatusOptions = [
   "failed",
 ];
 
-export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
+export const EmployeeOrderModal: React.FC<EmployeeOrderModalProps> = ({
   order,
   orderItems,
   open,
@@ -218,7 +218,6 @@ export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
           <Button variant="destructive" size="sm" onClick={onDelete}>
             Delete Order
           </Button>
-          {/* Add more admin actions here if needed */}
         </div>
       </div>
     </div>

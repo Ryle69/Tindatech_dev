@@ -3,9 +3,10 @@
 import { createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import {cookies} from "next/headers";
 
 export async function createCategory(formData: FormData) {
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
 
     const name = formData.get("name") as string
     const description = formData.get("description") as string
@@ -30,16 +31,16 @@ export async function createCategory(formData: FormData) {
 
         if (error) throw error
 
-        revalidatePath("/admin/categories")
-        redirect("/admin/categories?success=Category created successfully")
+        revalidatePath("/employee/categories")
+        redirect("/employee/categories?success=Category created successfully")
     } catch (error: any) {
         console.error("Error creating category:", error)
-        redirect(`/admin/categories/new?error=${encodeURIComponent(error.message)}`)
+        redirect(`/employee/categories/new?error=${encodeURIComponent(error.message)}`)
     }
 }
 
 export async function updateCategory(categoryId: number, formData: FormData) {
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
 
     const name = formData.get("name") as string
     const description = formData.get("description") as string
@@ -64,23 +65,23 @@ export async function updateCategory(categoryId: number, formData: FormData) {
 
         if (error) throw error
 
-        revalidatePath("/admin/categories")
-        redirect("/admin/categories?success=Category updated successfully")
+        revalidatePath("/employee/categories")
+        redirect("/employee/categories?success=Category updated successfully")
     } catch (error: any) {
         console.error("Error updating category:", error)
-        redirect(`/admin/categories/${categoryId}/edit?error=${encodeURIComponent(error.message)}`)
+        redirect(`/employee/categories/${categoryId}/edit?error=${encodeURIComponent(error.message)}`)
     }
 }
 
 export async function deleteCategory(categoryId: number) {
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
 
     try {
         // Check if category has products
         const { data: products } = await supabase.from("Products").select("id").eq("category_id", categoryId).limit(1)
 
         if (products && products.length > 0) {
-            redirect("/admin/categories?error=Cannot delete category with existing products")
+            redirect("/employee/categories?error=Cannot delete category with existing products")
             return
         }
 
@@ -88,16 +89,16 @@ export async function deleteCategory(categoryId: number) {
 
         if (error) throw error
 
-        revalidatePath("/admin/categories")
-        redirect("/admin/categories?success=Category deleted successfully")
+        revalidatePath("/employee/categories")
+        redirect("/employee/categories?success=Category deleted successfully")
     } catch (error: any) {
         console.error("Error deleting category:", error)
-        redirect(`/admin/categories?error=${encodeURIComponent(error.message)}`)
+        redirect(`/employee/categories?error=${encodeURIComponent(error.message)}`)
     }
 }
 
 export async function toggleCategoryStatus(categoryId: number, isActive: boolean) {
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
 
     try {
         const { error } = await supabase
@@ -107,7 +108,7 @@ export async function toggleCategoryStatus(categoryId: number, isActive: boolean
 
         if (error) throw error
 
-        revalidatePath("/admin/categories")
+        revalidatePath("/employee/categories")
     } catch (error: any) {
         console.error("Error toggling category status:", error)
     }

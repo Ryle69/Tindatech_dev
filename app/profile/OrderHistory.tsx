@@ -59,11 +59,32 @@ interface Order {
   products?: OrderItem[];
   review?: number;
   Reviews?: Review;
+  canCancel?: boolean;
 }
 
 interface OrderHistoryProps {
   userId?: string;
 }
+
+const renderStatusBadge = (status: string) => {
+  const statusLower = status.toLowerCase();
+  switch (statusLower) {
+    case "delivered":
+      return <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Delivered</span>;
+    case "shipped":
+      return <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Shipped</span>;
+    case "cancelled":
+      return <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">Cancelled</span>;
+    case "pending":
+      return <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">Pending</span>;
+    case "processing":
+      return <span className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">Processing</span>;
+    case "confirmed":
+      return <span className="px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-800">Confirmed</span>;
+    default:
+      return <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">{status}</span>;
+  }
+};
 
 const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
   // State management
@@ -125,9 +146,9 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
     loadOrderItems();
   }, [selectedOrder]);
 
-  // Handlers
   const handleOrderClick = (order: Order) => {
-    setSelectedOrder(order);
+    const canCancel = ["pending", "processing", "confirmed"].includes(order.status.toLowerCase());
+    setSelectedOrder({ ...order, canCancel });
     setShowModal(true);
     setReview("");
     setReviewSubmitted(false);
@@ -155,7 +176,6 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
     try {
       const supabase = createClient();
 
-      // Get first product ID from order items for the review
       const productId = orderItems[0]?.product_id;
 
       const { data: reviewData, error: reviewError } = await supabase
@@ -178,7 +198,6 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
           .eq("id", selectedOrder.id);
 
       if (orderError) {
-        // Rollback review creation
         await supabase.from("Reviews").delete().eq("id", reviewData.id);
         throw orderError;
       }
@@ -194,18 +213,6 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
       console.error("Review submission error:", err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Render helpers
-  const renderStatusBadge = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "delivered":
-        return <span className="text-green-400">Delivered</span>;
-      case "shipped":
-        return <span className="text-blue-400">Shipped</span>;
-      default:
-        return <span className="text-gray-500">{status}</span>;
     }
   };
 
@@ -289,7 +296,6 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
     );
   };
 
-  // Component rendering
   if (!userId) {
     return <p className="text-sm text-muted-foreground">No user found.</p>;
   }
@@ -346,7 +352,6 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
   );
 };
 
-// Helper components
 const StarIcon = ({ filled }: { filled: boolean }) => (
     <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -383,6 +388,107 @@ const StarRating = ({
     </div>
 );
 
+const CancelOrderButton = ({
+                             orderId,
+                             onSuccess
+                           }: {
+  orderId: number;
+  onSuccess: () => void;
+}) => {
+  const [reason, setReason] = useState("");
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
+
+  const handleSubmit = async () => {
+    if (!reason.trim()) {
+      setError("Please provide a cancellation reason");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase
+          .from("Orders")
+          .update({
+            status: "pending",
+            notes: reason,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", orderId);
+
+      if (error) throw error;
+
+      setDone(true);
+      setTimeout(() => {
+        onSuccess();
+      }, 1500);
+    } catch (err) {
+      console.error("Cancellation error:", err);
+      setError(err instanceof Error ? err.message : "Failed to cancel order");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (done) {
+    return (
+        <div className="text-sm text-green-600">
+          Order cancellation is being processed.
+        </div>
+    );
+  }
+
+  return (
+      <>
+        {!showPrompt ? (
+            <button
+                onClick={() => setShowPrompt(true)}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Cancel Order
+            </button>
+        ) : (
+            <div className="mt-2">
+          <textarea
+              className="w-full border rounded p-2 mb-2 text-sm"
+              placeholder="State your reason for cancelling..."
+              rows={3}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+          />
+              {error && (
+                  <div className="text-sm text-red-600 mb-2">{error}</div>
+              )}
+              <div className="flex gap-2">
+                <button
+                    onClick={handleSubmit}
+                    className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                    disabled={!reason.trim() || loading}
+                >
+                  {loading ? "Processing..." : "Confirm Cancellation"}
+                </button>
+                <button
+                    onClick={() => {
+                      setReason("");
+                      setShowPrompt(false);
+                      setError(null);
+                    }}
+                    className="px-3 py-1 text-sm text-gray-600 hover:underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+        )}
+      </>
+  );
+};
+
 const OrderModal = ({
                       order,
                       orderItems,
@@ -395,7 +501,7 @@ const OrderModal = ({
   renderReviewSection: () => React.ReactNode;
 }) => (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div className="bg-white p-6 rounded shadow-lg min-w-[320px] max-w-[90vw] relative">
+      <div className="bg-white p-6 rounded shadow-lg min-w-[320px] max-w-[90vw] max-h-[90vh] overflow-y-auto relative">
         <button
             className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 bg-gray-200 rounded-full w-7 h-7 flex items-center justify-center z-10"
             onClick={onClose}
@@ -404,62 +510,121 @@ const OrderModal = ({
           ×
         </button>
 
-        <h2 className="text-lg font-bold mb-2">Order Details</h2>
+        <h2 className="text-lg font-bold mb-4">Order #{order.order_number || order.id}</h2>
 
-        <div className="mb-2">
-          <div><span className="font-semibold">Order ID:</span> {order.id}</div>
-          <div><span className="font-semibold">Status:</span> {order.status}</div>
-          <div><span className="font-semibold">Date:</span> {new Date(order.created_at).toLocaleString()}</div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">Order Information</h3>
+              <div className="space-y-1 text-sm">
+                <div><span className="font-medium">Status:</span> {renderStatusBadge(order.status)}</div>
+                <div><span className="font-medium">Date:</span> {new Date(order.created_at).toLocaleString()}</div>
+                <div><span className="font-medium">Payment Method:</span> {order.payment_method || "N/A"}</div>
+                <div><span className="font-medium">Payment Status:</span> {order.payment_status || "N/A"}</div>
 
-          {order.shipped_at && (
-              <div><span className="font-semibold">Shipped at:</span> {new Date(order.shipped_at).toLocaleString()}</div>
-          )}
+                {order.shipped_at && (
+                    <div><span className="font-medium">Shipped at:</span> {new Date(order.shipped_at).toLocaleString()}</div>
+                )}
 
-          {order.delivered_at ? (
-              <div><span className="font-semibold">Delivered at:</span> {new Date(order.delivered_at).toLocaleString()}</div>
-          ) : (
-              <div><span className="font-semibold text-green-400">To be delivered</span></div>
-          )}
+                {order.delivered_at ? (
+                    <div><span className="font-medium">Delivered at:</span> {new Date(order.delivered_at).toLocaleString()}</div>
+                ) : (
+                    <div><span className="text-green-600">To be delivered</span></div>
+                )}
+              </div>
+            </div>
 
-          <div className="mt-4 mb-2">
-            <span className="font-semibold block mb-1">Order Summary:</span>
-            {orderItems.length > 0 ? (
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-1">Product</th>
-                    <th className="text-center py-1">Qty</th>
-                    <th className="text-right py-1">Price</th>
-                    <th className="text-right py-1">Subtotal</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {orderItems.map(item => (
-                      <tr key={item.id}>
-                        <td>{item.product_name}</td>
-                        <td className="text-center">{item.quantity}</td>
-                        <td className="text-right">${item.unit_price.toFixed(2)}</td>
-                        <td className="text-right">${item.total_price.toFixed(2)}</td>
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">Order Summary</h3>
+              {orderItems.length > 0 ? (
+                  <div className="border rounded">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                      <tr className="border-b">
+                        <th className="text-left py-2 px-3">Product</th>
+                        <th className="text-center py-2 px-3">Qty</th>
+                        <th className="text-right py-2 px-3">Price</th>
+                        <th className="text-right py-2 px-3">Subtotal</th>
                       </tr>
-                  ))}
-                  </tbody>
-                </table>
-            ) : (
-                <div className="text-sm text-muted-foreground">No products found</div>
+                      </thead>
+                      <tbody>
+                      {orderItems.map(item => (
+                          <tr key={item.id} className="border-b">
+                            <td className="py-2 px-3">{item.product_name}</td>
+                            <td className="text-center py-2 px-3">{item.quantity}</td>
+                            <td className="text-right py-2 px-3">${item.unit_price.toFixed(2)}</td>
+                            <td className="text-right py-2 px-3">${item.total_price.toFixed(2)}</td>
+                          </tr>
+                      ))}
+                      </tbody>
+                      <tfoot>
+                      {order.subtotal !== undefined && (
+                          <tr className="border-b">
+                            <td colSpan={3} className="text-right py-2 px-3 font-medium">Subtotal</td>
+                            <td className="text-right py-2 px-3">${order.subtotal?.toFixed(2)}</td>
+                          </tr>
+                      )}
+                      {order.shipping_amount !== undefined && (
+                          <tr className="border-b">
+                            <td colSpan={3} className="text-right py-2 px-3 font-medium">Shipping</td>
+                            <td className="text-right py-2 px-3">${order.shipping_amount?.toFixed(2)}</td>
+                          </tr>
+                      )}
+                      {order.tax_amount !== undefined && (
+                          <tr className="border-b">
+                            <td colSpan={3} className="text-right py-2 px-3 font-medium">Tax</td>
+                            <td className="text-right py-2 px-3">${order.tax_amount?.toFixed(2)}</td>
+                          </tr>
+                      )}
+                      {order.discount_amount !== undefined && (
+                          <tr className="border-b">
+                            <td colSpan={3} className="text-right py-2 px-3 font-medium">Discount</td>
+                            <td className="text-right py-2 px-3">-${order.discount_amount?.toFixed(2)}</td>
+                          </tr>
+                      )}
+                      <tr>
+                        <td colSpan={3} className="text-right py-2 px-3 font-bold">Total</td>
+                        <td className="text-right py-2 px-3 font-bold">${order.total_amount?.toFixed(2) || "0.00"}</td>
+                      </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+              ) : (
+                  <div className="text-sm text-muted-foreground">No products found</div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">Delivery Address</h3>
+              <AddressDisplay address={order.shipping_address} />
+            </div>
+
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">Billing Address</h3>
+              <AddressDisplay address={order.billing_address} />
+            </div>
+
+            {order.notes && (
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Order Notes</h3>
+                  <div className="text-sm bg-gray-50 p-3 rounded">
+                    {order.notes}
+                  </div>
+                </div>
             )}
           </div>
-
-          <div className="font-semibold text-right">
-            Total: ${order.total_amount?.toFixed(2) || "0.00"}
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <span className="font-semibold block mb-1">Delivery Address:</span>
-          <AddressDisplay address={order.shipping_address} />
         </div>
 
         {renderReviewSection()}
+
+        {order.canCancel && (
+            <div className="mt-4 border-t pt-4">
+              <h3 className="font-semibold mb-2">Order Actions</h3>
+              <CancelOrderButton orderId={order.id} onSuccess={onClose} />
+            </div>
+        )}
 
         <button
             className="mt-4 px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
@@ -472,23 +637,29 @@ const OrderModal = ({
 );
 
 const AddressDisplay = ({ address }: { address?: ShippingAddress }) => {
-  if (!address) return <div className="text-sm">N/A</div>;
+  if (!address) return <div className="text-sm text-gray-500">N/A</div>;
 
   return (
-      <div className="text-sm">
-        <div>{address.address_line1}</div>
-        {address.address_line2 && <div>{address.address_line2}</div>}
-        <div>
-          {[address.city, address.province, address.region].filter(Boolean).join(", ") || "N/A"}
+      <div className="text-sm bg-gray-50 p-3 rounded">
+        <div className="font-medium mb-1">
+          {address.address_line1}
+          {address.address_line2 && `, ${address.address_line2}`}
         </div>
         <div>
-          {address.country || "N/A"} {address.postal_code || ""}
+          {[address.city, address.province, address.region].filter(Boolean).join(", ")}
+        </div>
+        <div>
+          {address.country} {address.postal_code && `, ${address.postal_code}`}
         </div>
         {address.landmark && (
-            <div><span className="font-semibold">Landmark:</span> {address.landmark}</div>
+            <div className="mt-1">
+              <span className="font-medium">Landmark:</span> {address.landmark}
+            </div>
         )}
         {address.notes && (
-            <div><span className="font-semibold">Notes:</span> {address.notes}</div>
+            <div className="mt-1">
+              <span className="font-medium">Delivery Notes:</span> {address.notes}
+            </div>
         )}
       </div>
   );

@@ -261,7 +261,7 @@ export default function CheckoutPage() {
                     subtotal: subtotal,
                     shipping_amount: shippingCost,
                     total_amount: total,
-                    status: "pending",
+                    status: "processing",
                     payment_status: "pending",
                     currency: "PHP",
                 }])

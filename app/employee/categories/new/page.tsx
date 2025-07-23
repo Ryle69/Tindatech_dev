@@ -1,4 +1,3 @@
-import { requireAdmin } from "@/utils/admin-middleware"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,18 +7,19 @@ import { Switch } from "@/components/ui/switch"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { createCategory } from "../actions"
+import {requireEmployee} from "@/utils/employee-middleware";
 
 export default async function NewCategoryPage({
                                                   searchParams,
                                               }: {
     searchParams: { error?: string }
 }) {
-    await requireAdmin()
+    await requireEmployee()
 
     return (
         <div className="p-6">
             <div className="mb-6 flex items-center gap-4">
-                <Link href="/admin/categories">
+                <Link href="/employee/categories">
                     <Button variant="outline" size="sm" className="gap-2 bg-transparent">
                         <ArrowLeft className="h-4 w-4" />
                         Back to Categories
@@ -70,7 +70,7 @@ export default async function NewCategoryPage({
                         <div className="flex gap-4">
                             <Button type="submit">Create Category</Button>
                             <Button type="button" variant="outline" asChild>
-                                <Link href="/admin/categories">Cancel</Link>
+                                <Link href="/employee/categories">Cancel</Link>
                             </Button>
                         </div>
                     </form>

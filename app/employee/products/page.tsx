@@ -1,4 +1,3 @@
-import { requireAdmin } from "@/utils/admin-middleware"
 import { createClient } from "@/utils/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,13 +7,14 @@ import { Plus, Search } from "lucide-react"
 import Link from "next/link"
 import { ProductActions } from "./components/product-actions"
 import {cookies} from "next/headers";
+import {requireEmployee} from "@/utils/employee-middleware";
 
 export default async function ProductsPage({
                                                searchParams,
                                            }: {
     searchParams: { success?: string; error?: string; search?: string }
 }) {
-    await requireAdmin()
+    await requireEmployee()
 
     const cookieStore = cookies()
     const supabase = await createClient(cookieStore) // Add await here
@@ -44,7 +44,7 @@ export default async function ProductsPage({
                     <p className="text-gray-600">Manage your product catalog</p>
                 </div>
                 <Button asChild className="gap-2">
-                    <Link href="/admin/products/new">
+                    <Link href="/employee/products/new">
                         <Plus className="h-4 w-4" />
                         Add Product
                     </Link>

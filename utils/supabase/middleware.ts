@@ -30,10 +30,7 @@ export async function updateSession(request: NextRequest) {
     const {
         data: { user },
     } = await supabase.auth.getUser()
-
     console.log("🔍 Middleware Debug - User:", user?.id, user?.email)
-
-    // Get user role from Users table (RLS is now disabled)
     let userRole = null
     if (user) {
         try {
@@ -48,6 +45,9 @@ export async function updateSession(request: NextRequest) {
 
     const isAdmin = userRole === "admin"
     console.log("🔍 Middleware Debug - Role Check:", { userRole, isAdmin, path: request.nextUrl.pathname })
+    const isEmployee = userRole === "employee"
+    console.log("🔍 Middleware Debug - Role Check:", { userRole, isEmployee, path: request.nextUrl.pathname })
+
 
     // Define public routes that don't require authentication
     const publicRoutes = [
@@ -98,6 +98,15 @@ export async function updateSession(request: NextRequest) {
         currentPath: request.nextUrl.pathname,
     })
 
+    // Check if trying to access employee routes
+    const isEmployeeRoute = request.nextUrl.pathname.startsWith("/employee")
+
+    console.log("🔍 Middleware Debug - Route Check:", {
+        isPublicRoute,
+        isEmployeeRoute,
+        currentPath: request.nextUrl.pathname,
+    })
+
     // If user is not authenticated and trying to access a protected route
     if (!user && !isPublicRoute) {
         console.log(`🔄 Redirecting unauthenticated user from ${request.nextUrl.pathname} to /login`)
@@ -115,10 +124,19 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
     }
 
+    // If user is authenticated but not employee and trying to access employee routes
+    if (user && isEmployeeRoute && !isEmployee) {
+        console.log(`🔄 Redirecting non-employee user from ${request.nextUrl.pathname} to /profile`)
+        console.log(`🔍 User details: ID=${user.id}, Role=${userRole}, IsEmployee=${isEmployee}`)
+        const url = request.nextUrl.clone()
+        url.pathname = "/profile"
+        return NextResponse.redirect(url)
+    }
+
 // If user is authenticated and trying to access login/register pages
     if (user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register")) {
         console.log(`🔄 Redirecting authenticated user from ${request.nextUrl.pathname}`)
-        console.log(`🔍 User role: ${userRole}, IsAdmin: ${isAdmin}`)
+        console.log(`🔍 User role: ${userRole}, IsAdmin: ${isAdmin}, IsEmployee: ${isEmployee}`)
         const returnUrl = request.nextUrl.searchParams.get("returnUrl")
 
         if (returnUrl) {
@@ -127,14 +145,24 @@ export async function updateSession(request: NextRequest) {
         }
 
         const url = request.nextUrl.clone()
-        // Redirect based on role
+        // Redirect based on role - FIXED LOGIC
         if (isAdmin) {
             console.log("🔄 Redirecting admin to /admin")
             url.pathname = "/admin"
+        } else if (isEmployee) {
+            console.log("🔄 Redirecting employee to /employee")
+            url.pathname = "/employee"
         } else {
             console.log("🔄 Redirecting customer to /profile")
             url.pathname = "/profile"
         }
+        return NextResponse.redirect(url)
+    }
+
+    if (user && request.nextUrl.pathname === "/profile" && isEmployee) {
+        console.log(`🔄 Redirecting employee from /profile to /employee`)
+        const url = request.nextUrl.clone()
+        url.pathname = "/employee"
         return NextResponse.redirect(url)
     }
 

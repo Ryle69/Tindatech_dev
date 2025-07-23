@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import {useRef, useState, useTransition} from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Edit, Package, ShoppingBag, Star, TrendingUp, Users, LogOut, Crown, Eye, EyeOff, X, Check } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
 import Link from "next/link"
-import { updateProfile, updateNewsletterSubscription, updatePassword } from "./actions"
+import {updateProfile, updateNewsletterSubscription, updatePassword, uploadProfilePicture} from "./actions"
 import OrderHistory from "./OrderHistory";
 import { useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
@@ -27,6 +27,7 @@ interface UserProfile {
     role: "admin" | "customer"
     subscribe_newsletter: boolean
     created_at: string
+    image?: string
 }
 
 interface ProfileClientProps {
@@ -43,19 +44,16 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
     const [newsletterSubscription, setNewsletterSubscription] = useState(userProfile?.subscribe_newsletter || false)
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
     const [isPending, startTransition] = useTransition()
-
-    // Password change states
+    const [previewImage, setPreviewImage] = useState<string | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-
     const userRole = userProfile?.role || "customer"
     const isAdmin = userRole === "admin"
-
     const displayName = userProfile
         ? `${userProfile.first_name} ${userProfile.last_name}`
         : user.email?.split("@")[0] || "User"
-
     const joinDate = userProfile
         ? new Date(userProfile.created_at).toLocaleDateString("en-US", {
             year: "numeric",
@@ -65,7 +63,6 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
             year: "numeric",
             month: "long",
         })
-
     const [orderCount, setOrderCount] = useState<number | null>(null);
 
     useEffect(() => {
@@ -85,7 +82,7 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
         name: displayName,
         email: user.email || "",
         role: "Customer",
-        avatar: "/placeholder.svg?height=100&width=100",
+        avatar: userProfile?.image || "/placeholder.svg?height=100&width=100",
         joinDate: joinDate,
         stats: {
             totalOrders: orderCount ?? 0, // now dynamic
@@ -99,7 +96,7 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
         name: displayName,
         email: user.email || "",
         role: "Admin",
-        avatar: "/placeholder.svg?height=100&width=100",
+        avatar: userProfile?.image || "/placeholder.svg?height=100&width=100",
         joinDate: joinDate,
         stats: {
             totalOrders: 1247,
@@ -110,6 +107,35 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
     }
 
     const currentUser = isAdmin ? adminData : customerData
+
+    async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        // Create preview
+        const reader = new FileReader()
+        reader.onload = () => {
+            setPreviewImage(reader.result as string)
+        }
+        reader.readAsDataURL(file)
+
+        // Upload the image
+        const formData = new FormData()
+        formData.append('image', file)
+
+        startTransition(async () => {
+            const result = await uploadProfilePicture(formData)
+            if (result.error) {
+                setMessage({ type: "error", text: result.error })
+            } else {
+                setMessage({ type: "success", text: "Profile picture updated successfully" })
+                // Update the currentUser avatar
+                if (result.imageUrl) {
+                    currentUser.avatar = result.imageUrl
+                }
+            }
+        })
+    }
 
     async function handleSignOut() {
         const response = await fetch("/auth/signout", {
@@ -226,16 +252,36 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                 <Card>
                     <CardContent className="p-6">
                         <div className="flex flex-col gap-6 md:flex-row md:items-center">
-                            <Avatar className="h-24 w-24">
-                                <AvatarImage src={currentUser.avatar || "/placeholder.svg"} alt={currentUser.name} />
+                            <Avatar className="h-24 w-24 relative group">
+                                <AvatarImage
+                                    src={previewImage || userProfile?.image || currentUser.avatar}
+                                    alt={currentUser.name}
+                                />
                                 <AvatarFallback className="text-lg">
                                     {currentUser.name
                                         .split(" ")
                                         .map((n) => n[0])
                                         .join("")}
                                 </AvatarFallback>
+                                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-white"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        <Edit/>
+                                    </Button>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleImageUpload}
+                                        accept="image/*"
+                                        className="hidden"
+                                        disabled={isPending}
+                                    />
+                                </div>
                             </Avatar>
-
                             <div className="flex-1 space-y-2">
                                 <div className="flex items-center gap-2">
                                     <h1 className="text-2xl font-bold text-[#69ab3c]">{currentUser.name}</h1>
@@ -458,30 +504,30 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                             </CardHeader>
                             <CardContent>
                                 {isAdmin ? (
-    <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">Admin management features will be implemented here.</p>
-        <div className="grid gap-2">
-            <Button variant="outline" className="justify-start bg-transparent">
-                <Users className="mr-2 h-4 w-4" />
-                View All Users
-            </Button>
-            <Button variant="outline" className="justify-start bg-transparent">
-                <Package className="mr-2 h-4 w-4" />
-                Manage Products
-            </Button>
-            <Button variant="outline" className="justify-start bg-transparent">
-                <TrendingUp className="mr-2 h-4 w-4" />
-                View Analytics
-            </Button>
-        </div>
-    </div>
-) : (
-    userProfile?.auth_id ? (
-      <OrderHistory userId={userProfile.auth_id} />
-    ) : (
-      <p className="text-sm text-muted-foreground">Loading order history...</p>
-    )
-)}
+                                    <div className="space-y-4">
+                                        <p className="text-sm text-muted-foreground">Admin management features will be implemented here.</p>
+                                        <div className="grid gap-2">
+                                            <Button variant="outline" className="justify-start bg-transparent">
+                                                <Users className="mr-2 h-4 w-4" />
+                                                View All Users
+                                            </Button>
+                                            <Button variant="outline" className="justify-start bg-transparent">
+                                                <Package className="mr-2 h-4 w-4" />
+                                                Manage Products
+                                            </Button>
+                                            <Button variant="outline" className="justify-start bg-transparent">
+                                                <TrendingUp className="mr-2 h-4 w-4" />
+                                                View Analytics
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    userProfile?.auth_id ? (
+                                        <OrderHistory userId={userProfile.auth_id} />
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">Loading order history...</p>
+                                    )
+                                )}
                             </CardContent>
                         </Card>
                     </TabsContent>
