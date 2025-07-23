@@ -7,6 +7,26 @@ const payMongo = new PayMongoAPI(
     process.env.PAYMONGO_PUBLIC_KEY!
 );
 
+function flattenMetadata(obj: any): Record<string, string> {
+    const result: Record<string, string> = {};
+
+    function recurse(cur: any, prefix = '') {
+        for (const key in cur) {
+            const value = cur[key];
+            const newKey = prefix ? `${prefix}_${key}` : key;
+
+            if (typeof value === 'object' && value !== null) {
+                recurse(value, newKey);
+            } else {
+                result[newKey] = String(value);
+            }
+        }
+    }
+
+    recurse(obj);
+    return result;
+}
+
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
@@ -29,7 +49,7 @@ export async function POST(request: NextRequest) {
             payment_method_allowed: paymentMethodsAllowed,
             description: description || 'Online Store Purchase',
             statement_descriptor: 'YOURSTORE',
-            metadata: metadata || {}
+            metadata: metadata ? flattenMetadata(metadata) : {}
         };
 
         const result = await payMongo.createPaymentIntent(paymentIntentData);
