@@ -4,7 +4,7 @@ import { createClient } from "@/utils/supabase/client"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ShoppingCart, CreditCard, Home, MapPin, Truck } from "lucide-react"
+import { ShoppingCart, CreditCard, Home, MapPin, Truck, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/contexts/CartContext"
@@ -38,6 +38,11 @@ const formSchema = z.object({
     country: z.string().min(1, "Country is required"),
     shippingMethod: z.enum(["standard", "express"]),
     paymentMethod: z.enum(["card", "gcash", "maya"]),
+    // Card details for direct payment
+    cardNumber: z.string().optional(),
+    cardExpMonth: z.string().optional(),
+    cardExpYear: z.string().optional(),
+    cardCvc: z.string().optional(),
 })
 
 export default function CheckoutPage() {
@@ -46,6 +51,7 @@ export default function CheckoutPage() {
     const [error, setError] = useState<string | null>(null)
     const [orderSuccess, setOrderSuccess] = useState(false)
     const [orderId, setOrderId] = useState<number | null>(null)
+    const [processingPayment, setProcessingPayment] = useState(false)
     const supabase = createClient()
     const router = useRouter()
     const { updateCartCount } = useCart()
@@ -62,6 +68,7 @@ export default function CheckoutPage() {
             zip: "",
             country: "",
             shippingMethod: "standard",
+            paymentMethod: "card",
         },
     })
 
@@ -132,7 +139,108 @@ export default function CheckoutPage() {
     const shippingCost = form.watch("shippingMethod") === "express" ? 15.00 : 5.00
     const total = subtotal + shippingCost
 
+    const processCardPayment = async (values: z.infer<typeof formSchema>, orderData: any) => {
+        try {
+            // Create payment intent
+            const paymentIntentResponse = await fetch('/api/payments/create-payment-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: total,
+                    currency: 'PHP',
+                    paymentMethod: values.paymentMethod,
+                    description: `Order #${orderData.id}`,
+                    metadata: { order_id: orderData.id }
+                })
+            });
+
+            const paymentIntentResult = await paymentIntentResponse.json();
+            if (!paymentIntentResult.success) {
+                throw new Error(paymentIntentResult.error);
+            }
+
+            // Create payment method
+            const paymentMethodResponse = await fetch('/api/payments/create-payment-method', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'card',
+                    details: {
+                        card_number: values.cardNumber?.replace(/\s/g, ''),
+                        exp_month: parseInt(values.cardExpMonth || '0'),
+                        exp_year: parseInt(values.cardExpYear || '0'),
+                        cvc: values.cardCvc
+                    }
+                })
+            });
+
+            const paymentMethodResult = await paymentMethodResponse.json();
+            if (!paymentMethodResult.success) {
+                throw new Error(paymentMethodResult.error);
+            }
+
+            // Attach payment method to payment intent
+            const attachResponse = await fetch('/api/payments/attach-payment-method', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    paymentIntentId: paymentIntentResult.data.id,
+                    paymentMethodId: paymentMethodResult.data.id,
+                    clientKey: paymentIntentResult.data.attributes.client_key,
+                    orderId: orderData.id
+                })
+            });
+
+            const attachResult = await attachResponse.json();
+            if (!attachResult.success) {
+                throw new Error(attachResult.error);
+            }
+
+            // Check payment status
+            if (attachResult.data.attributes.status === 'succeeded') {
+                return { success: true };
+            } else {
+                throw new Error('Payment failed or requires additional authentication');
+            }
+
+        } catch (error) {
+            console.error('Card payment error:', error);
+            throw error;
+        }
+    }
+
+    const processEWalletPayment = async (values: z.infer<typeof formSchema>, orderData: any) => {
+        try {
+            const checkoutSessionResponse = await fetch('/api/payments/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: cartItems,
+                    paymentMethod: values.paymentMethod,
+                    orderId: orderData.id,
+                    description: `Order #${orderData.id}`
+                })
+            });
+
+            const sessionResult = await checkoutSessionResponse.json();
+            if (!sessionResult.success) {
+                throw new Error(sessionResult.error);
+            }
+
+            // Redirect to PayMongo checkout
+            window.location.href = sessionResult.data.attributes.checkout_url;
+            return { success: true };
+
+        } catch (error) {
+            console.error('E-wallet payment error:', error);
+            throw error;
+        }
+    }
+
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        setProcessingPayment(true);
+        setError(null);
+
         try {
             const { data: { user }, error: authError } = await supabase.auth.getUser()
             if (authError || !user) {
@@ -155,12 +263,13 @@ export default function CheckoutPage() {
                         lastName: values.lastName,
                     }),
                     shipping_method: values.shippingMethod,
-                    payment_method: "pending", // Will update when payment is integrated
+                    payment_method: values.paymentMethod,
                     subtotal: subtotal,
                     shipping_amount: shippingCost,
                     total_amount: total,
                     status: "pending",
                     payment_status: "pending",
+                    currency: "PHP",
                 }])
                 .select()
                 .single()
@@ -184,7 +293,15 @@ export default function CheckoutPage() {
 
             if (itemsError) throw itemsError
 
-            // Clear the cart
+            // Process payment based on selected method
+            if (values.paymentMethod === 'card') {
+                await processCardPayment(values, orderData);
+            } else {
+                await processEWalletPayment(values, orderData);
+                return; // E-wallet redirects, so we return early
+            }
+
+            // Clear the cart for successful card payments
             const { data: cartData, error: cartError } = await supabase
                 .from("Carts")
                 .select("id")
@@ -198,39 +315,22 @@ export default function CheckoutPage() {
                     .eq("cart_id", cartData.id)
             }
 
-            const checkoutRes = await fetch("/api/payments/create", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    orderId: orderData.id,
-                    total,
-                    currency: "PHP",
-                    email: values.email,
-                    paymentMethod: form.getValues().paymentMethod,
-                }),
-            });
-
-            const data = await checkoutRes.json();
-            if (data.checkoutUrl) {
-                window.location.href = data.checkoutUrl;
-                return;
-            } else {
-                setError("Failed to initiate payment.");
-            }
-
             // Update cart count
             await updateCartCount()
 
-            // Set success state with order ID
+            // Set success state
             setOrderId(orderData.id)
             setOrderSuccess(true)
+
         } catch (error) {
             console.error("Error placing order:", error)
-            setError("Failed to place order. Please try again.")
+            setError(error instanceof Error ? error.message : "Failed to place order. Please try again.")
+        } finally {
+            setProcessingPayment(false)
         }
     }
+
+    const selectedPaymentMethod = form.watch("paymentMethod");
 
     if (loading) {
         return (
@@ -409,7 +509,7 @@ export default function CheckoutPage() {
                                 <Input
                                     id="country"
                                     {...form.register("country")}
-                                    placeholder="United States"
+                                    placeholder="Philippines"
                                 />
                                 {form.formState.errors.country && (
                                     <p className="text-red-500 text-sm mt-1">
@@ -435,7 +535,7 @@ export default function CheckoutPage() {
                                 <Label htmlFor="standard" className="flex-1">
                                     <div className="flex justify-between">
                                         <span>Standard Shipping</span>
-                                        <span>$5.00</span>
+                                        <span>₱5.00</span>
                                     </div>
                                     <p className="text-sm text-gray-600 mt-1">3-5 business days</p>
                                 </Label>
@@ -445,12 +545,108 @@ export default function CheckoutPage() {
                                 <Label htmlFor="express" className="flex-1">
                                     <div className="flex justify-between">
                                         <span>Express Shipping</span>
-                                        <span>$15.00</span>
+                                        <span>₱15.00</span>
                                     </div>
                                     <p className="text-sm text-gray-600 mt-1">1-2 business days</p>
                                 </Label>
                             </div>
                         </RadioGroup>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg border">
+                        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                            <CreditCard className="h-5 w-5" />
+                            Payment Method
+                        </h2>
+                        <RadioGroup
+                            onValueChange={(value) => form.setValue("paymentMethod", value as "card" | "gcash" | "maya")}
+                            defaultValue={form.watch("paymentMethod")}
+                            className="space-y-4"
+                        >
+                            <div className="flex items-center space-x-4 p-4 border rounded-lg hover:border-gray-400">
+                                <RadioGroupItem value="card" id="card" />
+                                <Label htmlFor="card" className="flex-1">
+                                    <div className="flex justify-between">
+                                        <span>Credit/Debit Card</span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-1">Pay with Visa, Mastercard, etc.</p>
+                                </Label>
+                            </div>
+                            <div className="flex items-center space-x-4 p-4 border rounded-lg hover:border-gray-400">
+                                <RadioGroupItem value="gcash" id="gcash" />
+                                <Label htmlFor="gcash" className="flex-1">
+                                    <div className="flex justify-between">
+                                        <span>GCash</span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-1">Pay using your GCash wallet</p>
+                                </Label>
+                            </div>
+                            <div className="flex items-center space-x-4 p-4 border rounded-lg hover:border-gray-400">
+                                <RadioGroupItem value="maya" id="maya" />
+                                <Label htmlFor="maya" className="flex-1">
+                                    <div className="flex justify-between">
+                                        <span>Maya</span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-1">Pay using your Maya wallet</p>
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                        {form.formState.errors.paymentMethod && (
+                            <p className="text-red-500 text-sm mt-2">{form.formState.errors.paymentMethod.message}</p>
+                        )}
+
+                        {/* Card Details Form - Only show when card is selected */}
+                        {selectedPaymentMethod === 'card' && (
+                            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                                <h3 className="font-medium mb-4">Card Details</h3>
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div>
+                                        <Label htmlFor="cardNumber">Card Number</Label>
+                                        <Input
+                                            id="cardNumber"
+                                            {...form.register("cardNumber")}
+                                            placeholder="1234 5678 9012 3456"
+                                            maxLength={19}
+                                            onChange={(e) => {
+                                                // Format card number with spaces
+                                                const value = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+                                                e.target.value = value;
+                                                form.setValue("cardNumber", value);
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <Label htmlFor="cardExpMonth">Month</Label>
+                                            <Input
+                                                id="cardExpMonth"
+                                                {...form.register("cardExpMonth")}
+                                                placeholder="MM"
+                                                maxLength={2}
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="cardExpYear">Year</Label>
+                                            <Input
+                                                id="cardExpYear"
+                                                {...form.register("cardExpYear")}
+                                                placeholder="YYYY"
+                                                maxLength={4}
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="cardCvc">CVC</Label>
+                                            <Input
+                                                id="cardCvc"
+                                                {...form.register("cardCvc")}
+                                                placeholder="123"
+                                                maxLength={4}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -473,12 +669,12 @@ export default function CheckoutPage() {
                                             <div>
                                                 <p className="font-medium">{item.product_name}</p>
                                                 <p className="text-sm text-gray-600">
-                                                    {item.quantity} × ${item.product_price.toFixed(2)}
+                                                    {item.quantity} × ₱{item.product_price.toFixed(2)}
                                                 </p>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right py-2">
-                                            ${(item.product_price * item.quantity).toFixed(2)}
+                                            ₱{(item.product_price * item.quantity).toFixed(2)}
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -488,41 +684,31 @@ export default function CheckoutPage() {
                         <div className="space-y-4 mt-6">
                             <div className="flex justify-between">
                                 <span>Subtotal</span>
-                                <span>${subtotal.toFixed(2)}</span>
+                                <span>₱{subtotal.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Shipping</span>
-                                <span>${shippingCost.toFixed(2)}</span>
+                                <span>₱{shippingCost.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-lg pt-4 border-t">
                                 <span>Total</span>
-                                <span>${total.toFixed(2)}</span>
+                                <span>₱{total.toFixed(2)}</span>
                             </div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-lg border">
-                            <h2 className="text-xl font-bold mb-4">Payment Method</h2>
-                            <RadioGroup
-                                defaultValue="card"
-                                className="space-y-4"
-                                onValueChange={val => form.setValue("paymentMethod", val as "card" | "gcash" | "maya")}
-                            >
-                                {["card", "gcash", "maya"].map(method => (
-                                    <div key={method} className="flex items-center space-x-4 p-4 border rounded-lg hover:border-gray-400">
-                                        <RadioGroupItem value={method} id={`pm-${method}`} />
-                                        <Label htmlFor={`pm-${method}`} className="flex-1 capitalize">
-                                            {method === "card" ? "Credit / Debit Card" : method.toUpperCase()}
-                                        </Label>
-                                    </div>
-                                ))}
-                            </RadioGroup>
-                            {form.formState.errors.paymentMethod && (
-                                <p className="text-red-500 text-sm mt-1">{form.formState.errors.paymentMethod.message}</p>
+                        <Button
+                            type="submit"
+                            className="w-full mt-6"
+                            disabled={processingPayment}
+                        >
+                            {processingPayment ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Processing Payment...
+                                </>
+                            ) : (
+                                "Place Order"
                             )}
-                        </div>
-
-                        <Button type="submit" className="w-full mt-6">
-                            Place Order
                         </Button>
                     </div>
 
