@@ -25,6 +25,7 @@ export default function CartPage() {
     const [cartItems, setCartItems] = useState<CartItem[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [isAuthenticated, setIsAuthenticated] = useState(false)
     const supabase = createClient()
     const router = useRouter()
     const { updateCartCount } = useCart()
@@ -34,9 +35,12 @@ export default function CartPage() {
             const { data: { user }, error: authError } = await supabase.auth.getUser()
 
             if (authError || !user) {
-                router.push("/login?returnUrl=/cart")
+                setIsAuthenticated(false)
+                setLoading(false)
                 return
             }
+
+            setIsAuthenticated(true)
 
             try {
                 // First get the user's cart
@@ -176,6 +180,26 @@ export default function CartPage() {
                     <div className="h-8 bg-gray-200 rounded w-1/4"></div>
                     <div className="h-32 bg-gray-200 rounded"></div>
                     <div className="h-32 bg-gray-200 rounded"></div>
+                </div>
+            </div>
+        )
+    }
+
+    if (!isAuthenticated) {
+        return (
+            <div className="container px-4 py-8">
+                <div className="text-center py-12">
+                    <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <h2 className="text-xl font-medium mb-2">Log in to view your cart</h2>
+                    <p className="text-gray-600 mb-6">Sign in to your account to start shopping</p>
+                    <div className="flex gap-4 justify-center">
+                        <Link href="/login">
+                            <Button>Sign In</Button>
+                        </Link>
+                        <Link href="/storefront">
+                            <Button variant="outline">Continue Shopping</Button>
+                        </Link>
+                    </div>
                 </div>
             </div>
         )

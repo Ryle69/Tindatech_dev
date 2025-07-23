@@ -197,6 +197,24 @@ export default function CheckoutPage() {
                     .eq("cart_id", cartData.id)
             }
 
+            const checkoutRes = await fetch("/api/payments/create", {
+                method: "POST",
+                body: JSON.stringify({
+                    orderId: orderData.id,
+                    total: total,
+                    currency: "PHP",
+                    email: values.email,
+                }),
+            });
+
+            const data = await checkoutRes.json();
+            if (data.checkoutUrl) {
+                window.location.href = data.checkoutUrl;
+                return;
+            } else {
+                setError("Failed to initiate payment.");
+            }
+
             // Update cart count
             await updateCartCount()
 
