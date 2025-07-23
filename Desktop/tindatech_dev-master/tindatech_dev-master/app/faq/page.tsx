@@ -18,7 +18,7 @@ export default function FAQPage() {
     {
       question: "Do you ship internationally?",
       answer:
-        "Yes, we ship to over 50 countries worldwide. International shipping times vary by location (5-14 business days). Customs duties and taxes may apply and are the responsibility of the customer.",
+        "Yes. International shipping times vary by location (5-14 business days). Customs duties and taxes may apply and are the responsibility of the customer.",
     },
     {
       question: "How can I track my order?",
@@ -28,33 +28,15 @@ export default function FAQPage() {
     {
       question: "What payment methods do you accept?",
       answer:
-        "We accept all major credit cards (Visa, MasterCard, American Express), PayPal, Apple Pay, Google Pay, and Shop Pay. All payments are processed securely.",
+        "We accept all, Gcash, Maya, GoTyme, major credit cards (Visa, MasterCard, American Express), PayPal, Apple Pay, Google Pay, and Shop Pay. All payments are processed securely.",
     },
     {
       question: "Can I modify or cancel my order?",
       answer:
         "Orders can be modified or cancelled within 1 hour of placement. After this time, orders enter our fulfillment process and cannot be changed. Please contact customer service immediately if you need to make changes.",
     },
-    {
-      question: "Do you offer price matching?",
-      answer:
-        "Yes, we offer price matching on identical items from authorized retailers. The item must be in stock and the price must be verifiable. Contact us with the details and we'll match the price.",
-    },
-    {
-      question: "How do I care for my products?",
-      answer:
-        "Care instructions vary by product. Detailed care information is included with each item and available on product pages. For electronics, we recommend following manufacturer guidelines.",
-    },
-    {
-      question: "Do you have a loyalty program?",
-      answer:
-        "Yes! Our Modern Rewards program offers points for every purchase, exclusive member discounts, early access to sales, and special birthday offers. Sign up is free and you earn points immediately.",
-    },
-    {
-      question: "What if I receive a damaged item?",
-      answer:
-        "We're sorry if you received a damaged item. Please contact us within 48 hours with photos of the damage. We'll arrange for a replacement or full refund, including return shipping costs.",
-    },
+    
+    
   ]
 
   const categories = [
@@ -122,17 +104,7 @@ export default function FAQPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="text-center">
-                <MessageCircle className="h-8 w-8 mx-auto mb-2" />
-                <CardTitle>Live Chat</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-sm text-gray-600 mb-4">Chat with our support team in real-time</p>
-                <Button className="w-full">Start Chat</Button>
-              </CardContent>
-            </Card>
+          
 
             <Card>
               <CardHeader className="text-center">
@@ -155,13 +127,13 @@ export default function FAQPage() {
               <CardContent className="text-center">
                 <p className="text-sm text-gray-600 mb-4">Call us Monday-Friday, 9AM-6PM EST</p>
                 <Button variant="outline" className="w-full">
-                  (555) 123-4567
+                  +63 912 234 5592
                 </Button>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-    </div>
+   
   )
 }
