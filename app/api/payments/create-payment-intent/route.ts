@@ -26,6 +26,12 @@ function flattenMetadata(obj: any): Record<string, string> {
     return result;
 }
 
+function sanitizeStatementDescriptor(descriptor: string): string {
+    return descriptor
+        .replace(/[<>'"\\*]/g, '')
+        .substring(0, 22);
+}
+
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
@@ -43,8 +49,8 @@ export async function POST(request: NextRequest) {
             amount: amountInCentavos,
             currency,
             payment_method_allowed: paymentMethodsAllowed,
-            description: description || "Cheryll's Fashion Boutique Purchase",
-            statement_descriptor: "Cheryll's Fashion Boutique",
+            description: description || "Cherylls Fashion Boutique Purchase",
+            statement_descriptor: sanitizeStatementDescriptor("Cherylls Fashion Boutique"),
             metadata: metadata ? flattenMetadata(metadata) : {}
         };
 
