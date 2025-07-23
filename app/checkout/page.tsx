@@ -141,7 +141,6 @@ export default function CheckoutPage() {
 
     const processCardPayment = async (values: z.infer<typeof formSchema>, orderData: any) => {
         try {
-            // Create payment intent
             const paymentIntentResponse = await fetch('/api/payments/create-payment-intent', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -159,7 +158,6 @@ export default function CheckoutPage() {
                 throw new Error(paymentIntentResult.error);
             }
 
-            // Create payment method
             const paymentMethodResponse = await fetch('/api/payments/create-payment-method', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -179,7 +177,6 @@ export default function CheckoutPage() {
                 throw new Error(paymentMethodResult.error);
             }
 
-            // Attach payment method to payment intent
             const attachResponse = await fetch('/api/payments/attach-payment-method', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -196,7 +193,6 @@ export default function CheckoutPage() {
                 throw new Error(attachResult.error);
             }
 
-            // Check payment status
             if (attachResult.data.attributes.status === 'succeeded') {
                 return { success: true };
             } else {
@@ -227,7 +223,6 @@ export default function CheckoutPage() {
                 throw new Error(sessionResult.error);
             }
 
-            // Redirect to PayMongo checkout
             window.location.href = sessionResult.data.attributes.checkout_url;
             return { success: true };
 
@@ -248,7 +243,6 @@ export default function CheckoutPage() {
                 return
             }
 
-            // Create order with pending status
             const { data: orderData, error: orderError } = await supabase
                 .from("Orders")
                 .insert([{
@@ -276,7 +270,6 @@ export default function CheckoutPage() {
 
             if (orderError) throw orderError
 
-            // Add order items
             const orderItems = cartItems.map(item => ({
                 order_id: orderData.id,
                 product_id: item.product_id,
@@ -293,15 +286,13 @@ export default function CheckoutPage() {
 
             if (itemsError) throw itemsError
 
-            // Process payment based on selected method
             if (values.paymentMethod === 'card') {
                 await processCardPayment(values, orderData);
             } else {
                 await processEWalletPayment(values, orderData);
-                return; // E-wallet redirects, so we return early
+                return;
             }
 
-            // Clear the cart for successful card payments
             const { data: cartData, error: cartError } = await supabase
                 .from("Carts")
                 .select("id")
@@ -315,10 +306,8 @@ export default function CheckoutPage() {
                     .eq("cart_id", cartData.id)
             }
 
-            // Update cart count
             await updateCartCount()
 
-            // Set success state
             setOrderId(orderData.id)
             setOrderSuccess(true)
 
@@ -595,7 +584,6 @@ export default function CheckoutPage() {
                             <p className="text-red-500 text-sm mt-2">{form.formState.errors.paymentMethod.message}</p>
                         )}
 
-                        {/* Card Details Form - Only show when card is selected */}
                         {selectedPaymentMethod === 'card' && (
                             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                                 <h3 className="font-medium mb-4">Card Details</h3>
@@ -608,7 +596,6 @@ export default function CheckoutPage() {
                                             placeholder="1234 5678 9012 3456"
                                             maxLength={19}
                                             onChange={(e) => {
-                                                // Format card number with spaces
                                                 const value = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
                                                 e.target.value = value;
                                                 form.setValue("cardNumber", value);

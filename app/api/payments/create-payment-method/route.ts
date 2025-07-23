@@ -1,4 +1,3 @@
-// app/api/payments/create-payment-method/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import PayMongoAPI from '@/utils/paymongo';
 

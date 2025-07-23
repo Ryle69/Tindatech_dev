@@ -1,14 +1,13 @@
-// utils/paymongo.ts
 interface PayMongoLineItem {
     name: string;
     quantity: number;
-    amount: number; // in centavos
+    amount: number;
     currency: string;
     description?: string;
 }
 
 interface CreatePaymentIntentData {
-    amount: number; // in centavos
+    amount: number;
     currency: string;
     payment_method_allowed: string[];
     description?: string;
@@ -43,7 +42,6 @@ class PayMongoAPI {
         };
     }
 
-    // Create Payment Intent for direct card payments
     async createPaymentIntent(data: CreatePaymentIntentData) {
         try {
             const response = await fetch(`${this.baseURL}/payment_intents`, {
@@ -68,7 +66,6 @@ class PayMongoAPI {
         }
     }
 
-    // Create Checkout Session for e-wallet payments (GCash, Maya)
     async createCheckoutSession(data: CreateCheckoutSessionData) {
         try {
             const response = await fetch(`${this.baseURL}/checkout_sessions`, {
@@ -93,12 +90,11 @@ class PayMongoAPI {
         }
     }
 
-    // Attach Payment Method to Payment Intent
     async attachPaymentMethod(paymentIntentId: string, paymentMethodId: string, clientKey: string) {
         try {
             const response = await fetch(`${this.baseURL}/payment_intents/${paymentIntentId}/attach`, {
                 method: 'POST',
-                headers: this.getAuthHeaders(true), // Use public key
+                headers: this.getAuthHeaders(true),
                 body: JSON.stringify({
                     data: {
                         attributes: {
@@ -121,12 +117,11 @@ class PayMongoAPI {
         }
     }
 
-    // Create Payment Method
     async createPaymentMethod(type: string, details: any) {
         try {
             const response = await fetch(`${this.baseURL}/payment_methods`, {
                 method: 'POST',
-                headers: this.getAuthHeaders(true), // Use public key
+                headers: this.getAuthHeaders(true),
                 body: JSON.stringify({
                     data: {
                         attributes: {
@@ -149,7 +144,6 @@ class PayMongoAPI {
         }
     }
 
-    // Retrieve Payment Intent
     async getPaymentIntent(paymentIntentId: string) {
         try {
             const response = await fetch(`${this.baseURL}/payment_intents/${paymentIntentId}`, {
@@ -170,12 +164,10 @@ class PayMongoAPI {
     }
 }
 
-// Helper function to convert PHP to centavos
 export const convertToCentavos = (amount: number): number => {
     return Math.round(amount * 100);
 };
 
-// Helper function to convert centavos to PHP
 export const convertFromCentavos = (centavos: number): number => {
     return centavos / 100;
 };

@@ -1,4 +1,3 @@
-// app/api/webhooks/paymongo/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import crypto from 'crypto';
@@ -9,7 +8,6 @@ export async function POST(request: NextRequest) {
         const body = await request.text();
         const signature = request.headers.get('paymongo-signature');
 
-        // Verify webhook signature
         const webhookSecret = process.env.PAYMONGO_WEBHOOK_SECRET!;
         const expectedSignature = crypto
             .createHmac('sha256', webhookSecret)
@@ -23,7 +21,6 @@ export async function POST(request: NextRequest) {
         const event = JSON.parse(body);
         const supabase = await createClient(cookies());
 
-        // Handle different webhook events
         switch (event.data.attributes.type) {
             case 'payment_intent.succeeded':
                 const paymentIntent = event.data.attributes.data;

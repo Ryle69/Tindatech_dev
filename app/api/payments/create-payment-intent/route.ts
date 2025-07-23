@@ -1,4 +1,3 @@
-// app/api/payments/create-payment-intent/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import PayMongoAPI, { convertToCentavos } from '@/utils/paymongo';
 
@@ -7,15 +6,32 @@ const payMongo = new PayMongoAPI(
     process.env.PAYMONGO_PUBLIC_KEY!
 );
 
+function flattenMetadata(obj: any): Record<string, string> {
+    const result: Record<string, string> = {};
+
+    function recurse(cur: any, prefix = '') {
+        for (const key in cur) {
+            const value = cur[key];
+            const newKey = prefix ? `${prefix}_${key}` : key;
+
+            if (typeof value === 'object' && value !== null) {
+                recurse(value, newKey);
+            } else {
+                result[newKey] = String(value);
+            }
+        }
+    }
+
+    recurse(obj);
+    return result;
+}
+
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { amount, currency = 'PHP', paymentMethod, description, metadata } = body;
-
-        // Convert amount to centavos
         const amountInCentavos = convertToCentavos(amount);
 
-        // Define allowed payment methods based on selection
         let paymentMethodsAllowed = ['card'];
         if (paymentMethod === 'gcash') {
             paymentMethodsAllowed = ['gcash'];
@@ -27,9 +43,9 @@ export async function POST(request: NextRequest) {
             amount: amountInCentavos,
             currency,
             payment_method_allowed: paymentMethodsAllowed,
-            description: description || 'Online Store Purchase',
-            statement_descriptor: 'YOURSTORE',
-            metadata: metadata || {}
+            description: description || "Cheryll's Fashion Boutique Purchase",
+            statement_descriptor: "Cheryll's Fashion Boutique",
+            metadata: metadata ? flattenMetadata(metadata) : {}
         };
 
         const result = await payMongo.createPaymentIntent(paymentIntentData);
