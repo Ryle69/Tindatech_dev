@@ -37,6 +37,7 @@ const formSchema = z.object({
     zip: z.string().min(1, "ZIP code is required"),
     country: z.string().min(1, "Country is required"),
     shippingMethod: z.enum(["standard", "express"]),
+    paymentMethod: z.enum(["card", "gcash", "maya"]),
 })
 
 export default function CheckoutPage() {
@@ -199,11 +200,15 @@ export default function CheckoutPage() {
 
             const checkoutRes = await fetch("/api/payments/create", {
                 method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify({
                     orderId: orderData.id,
-                    total: total,
+                    total,
                     currency: "PHP",
                     email: values.email,
+                    paymentMethod: form.getValues().paymentMethod,
                 }),
             });
 
@@ -493,6 +498,27 @@ export default function CheckoutPage() {
                                 <span>Total</span>
                                 <span>${total.toFixed(2)}</span>
                             </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg border">
+                            <h2 className="text-xl font-bold mb-4">Payment Method</h2>
+                            <RadioGroup
+                                defaultValue="card"
+                                className="space-y-4"
+                                onValueChange={val => form.setValue("paymentMethod", val as "card" | "gcash" | "maya")}
+                            >
+                                {["card", "gcash", "maya"].map(method => (
+                                    <div key={method} className="flex items-center space-x-4 p-4 border rounded-lg hover:border-gray-400">
+                                        <RadioGroupItem value={method} id={`pm-${method}`} />
+                                        <Label htmlFor={`pm-${method}`} className="flex-1 capitalize">
+                                            {method === "card" ? "Credit / Debit Card" : method.toUpperCase()}
+                                        </Label>
+                                    </div>
+                                ))}
+                            </RadioGroup>
+                            {form.formState.errors.paymentMethod && (
+                                <p className="text-red-500 text-sm mt-1">{form.formState.errors.paymentMethod.message}</p>
+                            )}
                         </div>
 
                         <Button type="submit" className="w-full mt-6">
