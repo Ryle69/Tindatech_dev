@@ -13,7 +13,7 @@ export default function FAQPage() {
     {
       question: "How long does shipping take?",
       answer:
-        "Standard shipping takes 3-5 business days. Express shipping (1-2 business days) and overnight shipping are also available. Free shipping is offered on orders over $100.",
+        "Standard shipping takes 3-5 business days. Express shipping (1-2 business days) and overnight shipping are also available. Free shipping is offered on orders over ₱500.",
     },
     {
       question: "Do you ship internationally?",
@@ -81,58 +81,48 @@ export default function FAQPage() {
   ]
 
   return (
-    <div className="container px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Frequently Asked Questions</h1>
-          <p className="text-xl text-gray-600">Find answers to common questions about shopping with Modern Store</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {categories.map((category, index) => (
-            <Card key={index} className="text-center hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader>
-                <div className="text-3xl mb-2">{category.icon}</div>
-                <CardTitle className="text-lg">{category.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">{category.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Common Questions</h2>
-          <Accordion type="single" collapsible className="w-full">
-            {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
-                <AccordionContent className="text-gray-600">{faq.answer}</AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-
-        <div className="bg-gray-50 p-8 rounded-lg">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-4">Still Need Help?</h2>
-            <p className="text-gray-600">
-              Can't find what you're looking for? Our customer support team is here to help.
-            </p>
+      <div className="container px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold mb-4">Frequently Asked Questions</h1>
+            <p className="text-xl text-gray-600">Find answers to common questions about shopping with Modern Store</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="text-center">
-                <MessageCircle className="h-8 w-8 mx-auto mb-2" />
-                <CardTitle>Live Chat</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-sm text-gray-600 mb-4">Chat with our support team in real-time</p>
-                <Button className="w-full">Start Chat</Button>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {categories.map((category, index) => (
+                <Card key={index} className="text-center hover:shadow-md transition-shadow cursor-pointer">
+                  <CardHeader>
+                    <div className="text-3xl mb-2">{category.icon}</div>
+                    <CardTitle className="text-lg">{category.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600">{category.description}</p>
+                  </CardContent>
+                </Card>
+            ))}
+          </div>
+
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold mb-6">Common Questions</h2>
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, index) => (
+                  <AccordionItem key={index} value={`item-${index}`}>
+                    <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
+                    <AccordionContent className="text-gray-600">{faq.answer}</AccordionContent>
+                  </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+
+          <div className="bg-gray-50 p-8 rounded-lg">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold mb-4">Still Need Help?</h2>
+              <p className="text-gray-600">
+                Can't find what you're looking for? Our customer support team is here to help.
+              </p>
+            </div>
+
+
 
             <Card>
               <CardHeader className="text-center">
@@ -155,13 +145,12 @@ export default function FAQPage() {
               <CardContent className="text-center">
                 <p className="text-sm text-gray-600 mb-4">Call us Monday-Friday, 9AM-6PM EST</p>
                 <Button variant="outline" className="w-full">
-                  (555) 123-4567
+                  +63 912 234 5592
                 </Button>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-    </div>
   )
 }

@@ -16,15 +16,13 @@ interface OrderItem {
 }
 
 interface ShippingAddress {
-  address_line1: string;
-  address_line2?: string;
+  address: string;
   city: string;
-  province: string;
-  region: string;
+  state: string;
+  zip: string;
   country: string;
-  postal_code: string;
-  landmark?: string;
-  notes?: string;
+  firstName: string;
+  lastName: string;
 }
 
 interface Order {
@@ -40,7 +38,7 @@ interface Order {
   discount_amount?: number;
   total_amount?: number;
   currency?: string;
-  shipping_address?: ShippingAddress;
+  shipping_address: ShippingAddress;
   billing_address?: ShippingAddress;
   notes?: string;
   shipped_at?: string;
@@ -76,6 +74,27 @@ const paymentStatusOptions = [
   "failed",
 ];
 
+// Helper function to parse shipping address
+const parseShippingAddress = (address: any): ShippingAddress => {
+  if (typeof address === 'string') {
+    try {
+      return JSON.parse(address);
+    } catch (e) {
+      console.error('Failed to parse shipping address', e);
+      return {
+        address: '',
+        city: '',
+        state: '',
+        zip: '',
+        country: '',
+        firstName: '',
+        lastName: ''
+      };
+    }
+  }
+  return address;
+};
+
 export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
   order,
   orderItems,
@@ -88,6 +107,7 @@ export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
   const [newStatus, setNewStatus] = useState(order.status);
   const [newPaymentStatus, setNewPaymentStatus] = useState(order.payment_status || "unpaid");
   const [loading, setLoading] = useState(false);
+  const shippingAddress = parseShippingAddress(order.shipping_address);
 
   if (!open) return null;
 
@@ -116,24 +136,32 @@ export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
           )}
         </div>
         <div className="mb-2">
-          <span className="font-semibold">Total:</span> ${order.total_amount?.toFixed(2) ?? "0.00"}
+          <span className="font-semibold">Total:</span> PHP{order.total_amount?.toFixed(2) ?? "0.00"}
         </div>
-        {order.shipping_address && (
-          <div className="mb-4">
-            <span className="font-semibold">Shipping Address:</span>
-            <div className="ml-2 text-sm">
-              <div>{order.shipping_address.address_line1}</div>
-              {order.shipping_address.address_line2 && <div>{order.shipping_address.address_line2}</div>}
-              <div>
-                {order.shipping_address.city}, {order.shipping_address.province}, {order.shipping_address.region}
-              </div>
-              <div>
-                {order.shipping_address.country} {order.shipping_address.postal_code}
-              </div>
-              {order.shipping_address.landmark && <div>Landmark: {order.shipping_address.landmark}</div>}
-              {order.shipping_address.notes && <div>Notes: {order.shipping_address.notes}</div>}
+        {shippingAddress && (
+            <div className="mb-4">
+              <span className="font-semibold">Shipping Address:</span>
+              <table className="ml-2 text-sm border-collapse mt-1">
+                <tbody>
+                <tr>
+                  <td className="font-medium pr-4 py-1 align-top">Recipient:</td>
+                  <td className="py-1">{shippingAddress.firstName} {shippingAddress.lastName}</td>
+                </tr>
+                <tr>
+                  <td className="font-medium pr-4 py-1 align-top">Address:</td>
+                  <td className="py-1">{shippingAddress.address}</td>
+                </tr>
+                <tr>
+                  <td className="font-medium pr-4 py-1 align-top">City/State:</td>
+                  <td className="py-1">{shippingAddress.city}, {shippingAddress.state}</td>
+                </tr>
+                <tr>
+                  <td className="font-medium pr-4 py-1 align-top">Country/Zip:</td>
+                  <td className="py-1">{shippingAddress.country} {shippingAddress.zip}</td>
+                </tr>
+                </tbody>
+              </table>
             </div>
-          </div>
         )}
         <div className="mb-4">
           <span className="font-semibold">Order Items:</span>
@@ -152,8 +180,8 @@ export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
                   <tr key={item.id}>
                     <td>{item.product_name}</td>
                     <td className="text-center">{item.quantity}</td>
-                    <td className="text-right">${item.unit_price.toFixed(2)}</td>
-                    <td className="text-right">${item.total_price.toFixed(2)}</td>
+                    <td className="text-right">PHP{item.unit_price.toFixed(2)}</td>
+                    <td className="text-right">PHP{item.total_price.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -86,7 +86,7 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
         joinDate: joinDate,
         stats: {
             totalOrders: orderCount ?? 0, // now dynamic
-            totalSpent: "$1,245",
+            totalSpent: "₱ 1,245",
             loyaltyPoints: 2450,
             savedItems: 8,
         },
@@ -100,7 +100,7 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
         joinDate: joinDate,
         stats: {
             totalOrders: 1247,
-            totalRevenue: "$45,230",
+            totalRevenue: "₱ 45,230",
             activeProducts: 156,
             totalCustomers: 892,
         },
@@ -196,7 +196,6 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
     return (
         <div className="min-h-screen bg-gray-[#D7D2AE] p-4 md:p-6">
             <div className="mx-auto max-w-6xl space-y-6">
-                {/* Header with Sign Out */}
                 <div className="flex items-center justify-between rounded-lg bg-[#F7F1C5] p-4 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
@@ -235,7 +234,6 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                     </div>
                 </div>
 
-                {/* Message Display */}
                 {message && (
                     <div
                         className={`p-4 rounded-lg flex items-center gap-2 ${
@@ -314,7 +312,6 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                     </CardContent>
                 </Card>
 
-                {/* Stats Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {isAdmin ? (
                         <>
@@ -376,28 +373,28 @@ export default function ProfileClient({ user, userProfile }: ProfileClientProps)
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card>
-                                <CardContent className="p-6">
-                                    <div className="flex items-center gap-2">
-                                        <TrendingUp className="h-5 w-5 text-green-600" />
-                                        <div>
-                                            <p className="text-sm text-muted-foreground">Total Spent</p>
-                                            <p className="text-2xl font-bold">{customerData.stats.totalSpent}</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardContent className="p-6">
-                                    <div className="flex items-center gap-2">
-                                        <Star className="h-5 w-5 text-yellow-600" />
-                                        <div>
-                                            <p className="text-sm text-muted-foreground">Loyalty Points</p>
-                                            <p className="text-2xl font-bold">{customerData.stats.loyaltyPoints}</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            {/*<Card>*/}
+                            {/*    <CardContent className="p-6">*/}
+                            {/*        <div className="flex items-center gap-2">*/}
+                            {/*            <TrendingUp className="h-5 w-5 text-green-600" />*/}
+                            {/*            <div>*/}
+                            {/*                <p className="text-sm text-muted-foreground">Total Spent</p>*/}
+                            {/*                <p className="text-2xl font-bold">{customerData.stats.totalSpent}</p>*/}
+                            {/*            </div>*/}
+                            {/*        </div>*/}
+                            {/*    </CardContent>*/}
+                            {/*</Card>*/}
+                            {/*<Card>*/}
+                            {/*    <CardContent className="p-6">*/}
+                            {/*        <div className="flex items-center gap-2">*/}
+                            {/*            <Star className="h-5 w-5 text-yellow-600" />*/}
+                            {/*            <div>*/}
+                            {/*                <p className="text-sm text-muted-foreground">Loyalty Points</p>*/}
+                            {/*                <p className="text-2xl font-bold">{customerData.stats.loyaltyPoints}</p>*/}
+                            {/*            </div>*/}
+                            {/*        </div>*/}
+                            {/*    </CardContent>*/}
+                            {/*</Card>*/}
                             <Card>
                                 <CardContent className="p-6">
                                     <div className="flex items-center gap-2">

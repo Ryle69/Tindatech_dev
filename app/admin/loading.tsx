@@ -1,8 +1,9 @@
+// /app/admin/loading.tsx
 import Image from "next/image"
 
 export default function Loading() {
     return (
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center bg-white">
             <div className="flex flex-col items-center space-y-4">
                 <Image
                     src="/logo.svg"

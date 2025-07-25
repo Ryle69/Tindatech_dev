@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Plus, Search, Package } from "lucide-react"
 import Link from "next/link"
 import { CategoryActions } from "./components/category-actions"
+import {cookies} from "next/headers";
 
 export default async function CategoriesPage({
                                                  searchParams,
@@ -15,7 +16,7 @@ export default async function CategoriesPage({
 }) {
     await requireAdmin()
 
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
     const searchTerm = searchParams.search || ""
 
     let query = supabase

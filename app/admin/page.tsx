@@ -2,6 +2,7 @@ import { requireAdmin, getAdminData } from "@/utils/admin-middleware"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Package, ShoppingCart, Users, TrendingUp, AlertTriangle } from "lucide-react"
+import Image from "next/image";
 
 export default async function AdminDashboard() {
   await requireAdmin()
@@ -57,7 +58,7 @@ export default async function AdminDashboard() {
                 <TrendingUp className="h-8 w-8 text-orange-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">$12,345</p>
+                  <p className="text-2xl font-bold text-gray-900">₱ 12,345</p>
                 </div>
               </div>
             </CardContent>
@@ -79,7 +80,7 @@ export default async function AdminDashboard() {
                         <p className="text-sm text-gray-600">{new Date(order.created_at).toLocaleDateString()}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">${order.total_amount}</p>
+                        <p className="font-medium">₱ {order.total_amount}</p>
                         <Badge
                             variant={
                               order.status === "delivered"

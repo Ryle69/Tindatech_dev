@@ -67,7 +67,7 @@ export default async function EmployeeDashboard() {
                         <p className="text-sm text-gray-600">{new Date(order.created_at).toLocaleDateString()}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">${order.total_amount}</p>
+                        <p className="font-medium">PHP{order.total_amount}</p>
                         <Badge
                             variant={
                               order.status === "delivered"

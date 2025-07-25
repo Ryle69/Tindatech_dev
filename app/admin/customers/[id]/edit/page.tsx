@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { updateCustomer } from "../../actions"
 import { notFound } from "next/navigation"
+import {cookies} from "next/headers";
 
 export default async function EditCustomerPage({
                                                    params,
@@ -19,7 +20,7 @@ export default async function EditCustomerPage({
 }) {
     await requireAdmin()
 
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
     const customerId = Number.parseInt(params.id)
 
     const { data: customer } = await supabase

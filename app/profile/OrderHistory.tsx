@@ -236,8 +236,8 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
               <tr key={item.id}>
                 <td>{item.product_name}</td>
                 <td className="text-center">{item.quantity}</td>
-                <td className="text-right">${item.unit_price.toFixed(2)}</td>
-                <td className="text-right">${item.total_price.toFixed(2)}</td>
+                <td className="text-right">₱ {item.unit_price.toFixed(2)}</td>
+                <td className="text-right">₱ {item.total_price.toFixed(2)}</td>
               </tr>
           ))}
           </tbody>
@@ -333,7 +333,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
                     <div className="text-sm">{renderStatusBadge(order.status)}</div>
                   </div>
                   <div className="font-bold">
-                    ${order.total_amount?.toFixed(2) || "0.00"}
+                    ₱ {order.total_amount?.toFixed(2) || "0.00"}
                   </div>
                 </div>
               </CardContent>
@@ -552,8 +552,8 @@ const OrderModal = ({
                           <tr key={item.id} className="border-b">
                             <td className="py-2 px-3">{item.product_name}</td>
                             <td className="text-center py-2 px-3">{item.quantity}</td>
-                            <td className="text-right py-2 px-3">${item.unit_price.toFixed(2)}</td>
-                            <td className="text-right py-2 px-3">${item.total_price.toFixed(2)}</td>
+                            <td className="text-right py-2 px-3">₱ {item.unit_price.toFixed(2)}</td>
+                            <td className="text-right py-2 px-3">₱ {item.total_price.toFixed(2)}</td>
                           </tr>
                       ))}
                       </tbody>
@@ -561,30 +561,30 @@ const OrderModal = ({
                       {order.subtotal !== undefined && (
                           <tr className="border-b">
                             <td colSpan={3} className="text-right py-2 px-3 font-medium">Subtotal</td>
-                            <td className="text-right py-2 px-3">${order.subtotal?.toFixed(2)}</td>
+                            <td className="text-right py-2 px-3">₱ {order.subtotal?.toFixed(2)}</td>
                           </tr>
                       )}
                       {order.shipping_amount !== undefined && (
                           <tr className="border-b">
                             <td colSpan={3} className="text-right py-2 px-3 font-medium">Shipping</td>
-                            <td className="text-right py-2 px-3">${order.shipping_amount?.toFixed(2)}</td>
+                            <td className="text-right py-2 px-3">₱ {order.shipping_amount?.toFixed(2)}</td>
                           </tr>
                       )}
                       {order.tax_amount !== undefined && (
                           <tr className="border-b">
                             <td colSpan={3} className="text-right py-2 px-3 font-medium">Tax</td>
-                            <td className="text-right py-2 px-3">${order.tax_amount?.toFixed(2)}</td>
+                            <td className="text-right py-2 px-3">₱ {order.tax_amount?.toFixed(2)}</td>
                           </tr>
                       )}
                       {order.discount_amount !== undefined && (
                           <tr className="border-b">
                             <td colSpan={3} className="text-right py-2 px-3 font-medium">Discount</td>
-                            <td className="text-right py-2 px-3">-${order.discount_amount?.toFixed(2)}</td>
+                            <td className="text-right py-2 px-3">-₱ {order.discount_amount?.toFixed(2)}</td>
                           </tr>
                       )}
                       <tr>
                         <td colSpan={3} className="text-right py-2 px-3 font-bold">Total</td>
-                        <td className="text-right py-2 px-3 font-bold">${order.total_amount?.toFixed(2) || "0.00"}</td>
+                        <td className="text-right py-2 px-3 font-bold">₱ {order.total_amount?.toFixed(2) || "0.00"}</td>
                       </tr>
                       </tfoot>
                     </table>

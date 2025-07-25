@@ -20,15 +20,13 @@ interface OrderItem {
 }
 
 interface ShippingAddress {
-  address_line1: string;
-  address_line2?: string;
+  address: string;
   city: string;
-  province: string;
-  region: string;
+  state: string;
+  zip: string;
   country: string;
-  postal_code: string;
-  landmark?: string;
-  notes?: string;
+  firstName: string;
+  lastName: string;
 }
 
 interface Order {
@@ -44,7 +42,7 @@ interface Order {
   discount_amount?: number;
   total_amount?: number;
   currency?: string;
-  shipping_address?: ShippingAddress;
+  shipping_address: ShippingAddress;
   billing_address?: ShippingAddress;
   notes?: string;
   shipped_at?: string;
@@ -90,8 +88,32 @@ export default function OrdersClient({ orders, searchTerm = "", statusFilter = "
     setModalLoading(false);
   };
 
+  const parseShippingAddress = (address: any): ShippingAddress => {
+    if (typeof address === 'string') {
+      try {
+        return JSON.parse(address);
+      } catch (e) {
+        console.error('Failed to parse shipping address', e);
+        return {
+          address: '',
+          city: '',
+          state: '',
+          zip: '',
+          country: '',
+          firstName: '',
+          lastName: ''
+        };
+      }
+    }
+    return address;
+  };
+
   const handleViewOrder = async (order: Order) => {
-    setSelectedOrder(order);
+    const orderWithParsedAddress = {
+      ...order,
+      shipping_address: parseShippingAddress(order.shipping_address)
+    };
+    setSelectedOrder(orderWithParsedAddress);
     await fetchOrderItems(order.id);
     setModalOpen(true);
   };
@@ -140,45 +162,45 @@ export default function OrdersClient({ orders, searchTerm = "", statusFilter = "
 
   // Filter orders based on status
   const filteredOrders = status === "all"
-    ? allOrders
-    : allOrders.filter((order) => order.status === status);
+      ? allOrders
+      : allOrders.filter((order) => order.status === status);
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
-        <p className="text-gray-600">Manage customer orders</p>
-      </div>
-      <div className="mb-4 flex gap-4 items-center">
-        <label htmlFor="status-filter" className="font-medium">Filter by status:</label>
-        <select
-          id="status-filter"
-          className="rounded border px-3 py-2"
-          value={status}
-          onChange={e => setStatus(e.target.value)}
-        >
-          <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="processing">Processing</option>
-          <option value="shipped">Shipped</option>
-          <option value="delivered">Delivered</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-      </div>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>All Orders</CardTitle>
-              <CardDescription>{filteredOrders?.length || 0} orders total</CardDescription>
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
+          <p className="text-gray-600">Manage customer orders</p>
+        </div>
+        <div className="mb-4 flex gap-4 items-center">
+          <label htmlFor="status-filter" className="font-medium">Filter by status:</label>
+          <select
+              id="status-filter"
+              className="rounded border px-3 py-2"
+              value={status}
+              onChange={e => setStatus(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>All Orders</CardTitle>
+                <CardDescription>{filteredOrders?.length || 0} orders total</CardDescription>
+              </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-4 font-medium">Order</th>
                   <th className="text-left py-3 px-4 font-medium">Date</th>
@@ -187,53 +209,53 @@ export default function OrdersClient({ orders, searchTerm = "", statusFilter = "
                   <th className="text-left py-3 px-4 font-medium">Total</th>
                   <th className="text-left py-3 px-4 font-medium">Actions</th>
                 </tr>
-              </thead>
-              <tbody>
+                </thead>
+                <tbody>
                 {filteredOrders?.map((order) => (
-                  <tr key={order.id} className="border-b">
-                    <td className="py-3 px-4">
-                      <div>
-                        <p className="font-medium">{order.order_number}</p>
-                        <p className="text-sm text-gray-600">ID: {order.id}</p>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span>{new Date(order.created_at).toLocaleDateString()}</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge variant={getStatusColor(order.status)}>{order.status}</Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge variant={order.payment_status === "paid" ? "default" : "outline"}>
-                        {order.payment_status}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="font-medium">${order.total_amount}</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Button variant="outline" size="sm" onClick={() => handleViewOrder(order)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </td>
-                  </tr>
+                    <tr key={order.id} className="border-b">
+                      <td className="py-3 px-4">
+                        <div>
+                          <p className="font-medium">{order.order_number}</p>
+                          <p className="text-sm text-gray-600">ID: {order.id}</p>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge variant={getStatusColor(order.status)}>{order.status}</Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge variant={order.payment_status === "paid" ? "default" : "outline"}>
+                          {order.payment_status}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="font-medium">PHP{order.total_amount}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Button variant="outline" size="sm" onClick={() => handleViewOrder(order)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-      {modalOpen && selectedOrder && (
-        <EmployeeOrderModal
-          order={selectedOrder}
-          orderItems={orderItems}
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          onStatusChange={handleStatusChange}
-          onDelete={handleDeleteOrder}
-          onPaymentStatusChange={handlePaymentStatusChange}
-        />
-      )}
-    </div>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+        {modalOpen && selectedOrder && (
+            <EmployeeOrderModal
+                order={selectedOrder}
+                orderItems={orderItems}
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                onStatusChange={handleStatusChange}
+                onDelete={handleDeleteOrder}
+                onPaymentStatusChange={handlePaymentStatusChange}
+            />
+        )}
+      </div>
   );
 }
