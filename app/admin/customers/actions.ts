@@ -3,9 +3,10 @@
 import { createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import {cookies} from "next/headers";
 
 export async function updateCustomer(customerId: number, formData: FormData) {
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
 
     const firstName = formData.get("firstName") as string
     const lastName = formData.get("lastName") as string
@@ -35,7 +36,7 @@ export async function updateCustomer(customerId: number, formData: FormData) {
 }
 
 export async function deleteCustomer(customerId: number) {
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
 
     try {
         const { error } = await supabase.from("Users").delete().eq("id", customerId).eq("role", "customer")

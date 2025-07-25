@@ -8,11 +8,12 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Star, Heart, Share2, Minus, Plus, ShoppingCart } from 'lucide-react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import ProductImages from "@/components/productImages";
 import {ReviewsList} from "@/components/reviewsList";
 import {createClient} from "@/utils/supabase/client";
 import { useCart } from "@/contexts/CartContext";
+import Image from "next/image";
+import {useWishlist} from "@/contexts/WishlistContext";
 
 interface Product {
   id: number
@@ -36,17 +37,23 @@ export default function ProductPage() {
   const router = useRouter()
   const supabase = createClient()
   const { updateCartCount } = useCart()
-
+  const { wishlistCount, updateWishlistCount } = useWishlist()
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [selectedSize, setSelectedSize] = useState("")
   const [selectedColor, setSelectedColor] = useState("")
-  const [selectedImage, setSelectedImage] = useState("")
   const [reviewsCount, setReviewsCount] = useState(0)
   const [averageRating, setAverageRating] = useState(0)
   const [addingToCart, setAddingToCart] = useState(false)
+  const [isInWishlist, setIsInWishlist] = useState(false)
+  const [wishlistLoading, setWishlistLoading] = useState(false)
+
+  useEffect(() => {
+    if (!id) return
+    checkWishlistStatus()
+  }, [id])
 
   useEffect(() => {
     if (!id) {
@@ -95,7 +102,6 @@ export default function ProductPage() {
         setReviewsCount(reviewsCount)
         setAverageRating(averageRating)
 
-        // Transform the data to match your Product interface
         const transformedProduct: Product = {
           id: data.id,
           name: data.name,
@@ -111,9 +117,7 @@ export default function ProductPage() {
           colors: data.colors || [],
           specifications: typeof data.specifications === 'object' ? data.specifications : {},
           features: [
-            'Premium sound quality with deep bass',
-            'Active noise cancellation technology',
-            ...(Array.isArray(data.features) ? data.features : [])
+            ...(Array.isArray(data.features) ? data.features : ['No Features Specified'])
           ]
         }
 
@@ -146,7 +150,6 @@ export default function ProductPage() {
       return
     }
 
-    // Validate required selections
     if (product.sizes.length > 0 && !selectedSize) {
       toast.error('Please select a size')
       return
@@ -156,14 +159,11 @@ export default function ProductPage() {
       toast.error('Please select a color')
       return
     }
-
     setAddingToCart(true)
 
     try {
-      // Enhanced authentication check
       console.log('Checking authentication...')
 
-      // First, try to get the session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       console.log('Session check:', {
         session: session ? 'exists' : 'missing',
@@ -179,27 +179,22 @@ export default function ProductPage() {
       if (!session || !session.user) {
         console.log('No session found, checking user...')
 
-        // Fallback to getUser
         const { data: { user }, error: userError } = await supabase.auth.getUser()
         console.log('User check:', { user: user?.id, userError })
 
         if (userError || !user) {
           console.log('User not authenticated, redirecting to login')
-          // Clear any bad cookies first
           await supabase.auth.signOut()
           router.push(`/login?returnUrl=/product/${id}`)
           return
         }
 
-        // Use user from getUser if session failed
         var currentUser = user
       } else {
         var currentUser = session.user
       }
 
       console.log('Using user ID:', currentUser.id)
-
-      // Get or create user's cart
       console.log('Getting user cart...')
       let { data: cart, error: cartError } = await supabase
           .from("Carts")
@@ -239,18 +234,13 @@ export default function ProductPage() {
 
       console.log('Using cart ID:', cartId)
 
-      // Check if this exact product variant already exists in cart
       const { data: existingItem, error: existingItemError } = await supabase
           .from("CartItems")
           .select("id, quantity")
           .eq("cart_id", cartId)
           .eq("product_id", product.id)
-          .eq("size", selectedSize || "")
-          .eq("color", selectedColor || "")
           .maybeSingle()
-
       console.log('Existing item check:', { existingItem, existingItemError })
-
       if (existingItemError) {
         console.error('Existing item error:', existingItemError)
         throw existingItemError
@@ -258,7 +248,6 @@ export default function ProductPage() {
 
       if (existingItem) {
         console.log('Updating existing item...')
-        // Update existing item quantity
         const { error: updateError } = await supabase
             .from("CartItems")
             .update({
@@ -275,7 +264,6 @@ export default function ProductPage() {
         }
       } else {
         console.log('Adding new item to cart...')
-        // Add new item to cart
         const cartItemData = {
           cart_id: cartId,
           product_id: product.id,
@@ -303,7 +291,6 @@ export default function ProductPage() {
 
       console.log('Successfully added to cart!')
 
-      // Update cart count in the context
       await updateCartCount()
 
       toast.success('Added to cart', {
@@ -321,13 +308,103 @@ export default function ProductPage() {
     }
   }
 
+  const checkWishlistStatus = async () => {
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+      if (userError || !user) {
+        setIsInWishlist(false)
+        return
+      }
+
+      const { data, error } = await supabase
+          .from('Wishlist')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('product_id', id)
+          .maybeSingle()
+
+      if (error) throw error
+
+      setIsInWishlist(!!data)
+    } catch (error) {
+      console.error('Error checking wishlist status:', error)
+    }
+  }
+
+  const handleWishlistToggle = async () => {
+    if (!product) return
+
+    setWishlistLoading(true)
+
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+      if (userError || !user) {
+        router.push(`/login?returnUrl=/product/${id}`)
+        return
+      }
+
+      if (isInWishlist) {
+        const { error } = await supabase
+            .from('Wishlist')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('product_id', product.id)
+
+        if (error) throw error
+
+        setIsInWishlist(false)
+        await updateWishlistCount() // Update the wishlist count
+        toast.success('Removed from wishlist')
+      } else {
+        const { error } = await supabase
+            .from('Wishlist')
+            .insert({
+              user_id: user.id,
+              product_id: product.id,
+              created_at: new Date().toISOString()
+            })
+
+        if (error) {
+          if (error.code === '23505') {
+            setIsInWishlist(true)
+            toast.success('Already in wishlist')
+          } else {
+            throw error
+          }
+        } else {
+          setIsInWishlist(true)
+          await updateWishlistCount() // Update the wishlist count
+          toast.success('Added to wishlist', {
+            action: {
+              label: 'View Wishlist',
+              onClick: () => router.push('/wishlist')
+            }
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error)
+      toast.error('Failed to update wishlist')
+    } finally {
+      setWishlistLoading(false)
+    }
+  }
+
+
   if (loading) {
     return (
-        <div className="container px-4 py-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-96 bg-gray-200 rounded"></div>
-            <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex flex-col items-center space-y-4">
+            <Image
+                src="/logo.svg"
+                alt="Loading Logo"
+                width={64}
+                height={64}
+                className="animate-pulse"
+            />
+            <p className="text-gray-700 text-lg font-medium">Loading Page...</p>
           </div>
         </div>
     )
@@ -365,7 +442,7 @@ export default function ProductPage() {
   }
 
   return (
-      <div className="container px-4 py-8">
+      <div className="container px-10 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Product images section */}
           {product && <ProductImages product={product} />}
@@ -386,7 +463,7 @@ export default function ProductPage() {
                 </div>
               </div>
               <div className="flex items-center gap-4 mb-6">
-                <span className="text-3xl font-bold">${product.price}</span>
+                <span className="text-3xl font-bold">PHP{product.price}</span>
                 {product.original_price && (
                     <span className="text-xl text-gray-500 line-through">${product.original_price}</span>
                 )}
@@ -489,11 +566,22 @@ export default function ProductPage() {
                 )}
               </Button>
               <div className="flex gap-4">
-                <Button variant="outline" size="lg" className="flex-1">
-                  <Heart className="mr-2 h-4 w-4" />
-                  Add to Wishlist
+                <Button
+                    variant="outline"
+                    size="lg"
+                    className="flex-1 border-0"
+                    onClick={handleWishlistToggle}
+                    disabled={wishlistLoading}
+                >
+                  <Heart className={`mr-2 h-4 w-4 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+                  {wishlistLoading
+                      ? 'Loading...'
+                      : isInWishlist
+                          ? 'Remove from Wishlist'
+                          : 'Add to Wishlist'
+                  }
                 </Button>
-                <Button variant="outline" size="lg" className="flex-1">
+                <Button variant="ghost" size="lg" className="flex-1 bg-[#da6304] hover:bg-[#cc5a03]">
                   <Share2 className="mr-2 h-4 w-4" />
                   Share
                 </Button>
@@ -510,7 +598,7 @@ export default function ProductPage() {
         </div>
 
         {/* Product tabs section */}
-        <div className="mt-16">
+        <div className="mt-16 bg-">
           <Tabs defaultValue="description">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="description">Description</TabsTrigger>

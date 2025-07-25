@@ -96,9 +96,9 @@ export default async function ProductsPage({
                                     </td>
                                     <td className="py-3 px-4">
                                         <div>
-                                            <p className="font-medium">${product.price}</p>
+                                            <p className="font-medium">PHP{product.price}</p>
                                             {product.compare_price && (
-                                                <p className="text-sm text-gray-500 line-through">${product.compare_price}</p>
+                                                <p className="text-sm text-gray-500 line-through">PHP{product.compare_price}</p>
                                             )}
                                         </div>
                                     </td>

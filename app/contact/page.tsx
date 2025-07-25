@@ -1,6 +1,5 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -33,13 +32,13 @@ export default function ContactPage() {
             icon: <Mail className="h-6 w-6" />,
             title: "Email Us",
             description: "We'll respond quickly",
-            value: "kiwangcherryl@gmail.com",
+            value: "floridagk@icloud.com",
         },
         {
             icon: <Phone className="h-6 w-6" />,
             title: "Call Us",
             description: "Mon-Sun, 8am-8pm PST",
-            value: "+63 (999) 999-9999",
+            value: "+63 (906) 242-4939",
         },
         {
             icon: <MapPin className="h-6 w-6" />,
@@ -63,7 +62,7 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
                     {/* Contact Form */}
                     <div>
-                        <Card>
+                        <Card className="border-[#ab5005]">
                             <CardHeader>
                                 <CardTitle>Send us a message</CardTitle>
                             </CardHeader>
@@ -151,7 +150,6 @@ export default function ContactPage() {
                                 </div>
                             ))}
                         </div>
-
                         <div className="pt-4">
                             <h3 className="font-medium mb-2">Business Hours</h3>
                             <div className="space-y-1 text-gray-700">
@@ -161,9 +159,7 @@ export default function ContactPage() {
                         </div>
                     </div>
                 </div>
-
-                {/* Map Section */}
-                <div className="mb-16">
+                <div className="-mt-8 mb-16">
                     <MapLocation />
                 </div>
             </div>

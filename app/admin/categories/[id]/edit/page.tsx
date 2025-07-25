@@ -10,6 +10,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { updateCategory } from "../../actions"
 import { notFound } from "next/navigation"
+import {cookies} from "next/headers";
 
 export default async function EditCategoryPage({
                                                    params,
@@ -20,7 +21,7 @@ export default async function EditCategoryPage({
 }) {
     await requireAdmin()
 
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
     const categoryId = Number.parseInt(params.id)
 
     const { data: category } = await supabase.from("Categories").select("*").eq("id", categoryId).single()

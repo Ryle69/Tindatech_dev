@@ -36,15 +36,6 @@ function RegisterForm() {
   return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <Link href="/" className="flex items-center justify-center space-x-2 mb-8">
-              <div className="h-10 w-10 bg-black rounded-md flex items-center justify-center">
-                <span className="text-white font-bold">CFB</span>
-              </div>
-              <span className="font-bold text-2xl">Cheryll's Fashion Boutique</span>
-            </Link>
-          </div>
-
           <Card>
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl text-center">Create your account</CardTitle>

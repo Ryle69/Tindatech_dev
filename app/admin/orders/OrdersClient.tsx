@@ -20,15 +20,13 @@ interface OrderItem {
 }
 
 interface ShippingAddress {
-  address_line1: string;
-  address_line2?: string;
+  address: string;
   city: string;
-  province: string;
-  region: string;
+  state: string;
+  zip: string;
   country: string;
-  postal_code: string;
-  landmark?: string;
-  notes?: string;
+  firstName: string;
+  lastName: string;
 }
 
 interface Order {
@@ -44,7 +42,7 @@ interface Order {
   discount_amount?: number;
   total_amount?: number;
   currency?: string;
-  shipping_address?: ShippingAddress;
+  shipping_address: ShippingAddress;
   billing_address?: ShippingAddress;
   notes?: string;
   shipped_at?: string;
@@ -90,8 +88,32 @@ export default function OrdersClient({ orders, searchTerm = "", statusFilter = "
     setModalLoading(false);
   };
 
+  const parseShippingAddress = (address: any): ShippingAddress => {
+    if (typeof address === 'string') {
+      try {
+        return JSON.parse(address);
+      } catch (e) {
+        console.error('Failed to parse shipping address', e);
+        return {
+          address: '',
+          city: '',
+          state: '',
+          zip: '',
+          country: '',
+          firstName: '',
+          lastName: ''
+        };
+      }
+    }
+    return address;
+  };
+
   const handleViewOrder = async (order: Order) => {
-    setSelectedOrder(order);
+    const orderWithParsedAddress = {
+      ...order,
+      shipping_address: parseShippingAddress(order.shipping_address)
+    };
+    setSelectedOrder(orderWithParsedAddress);
     await fetchOrderItems(order.id);
     setModalOpen(true);
   };
@@ -209,7 +231,7 @@ export default function OrdersClient({ orders, searchTerm = "", statusFilter = "
                       </Badge>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="font-medium">${order.total_amount}</span>
+                      <span className="font-medium">PHP{order.total_amount}</span>
                     </td>
                     <td className="py-3 px-4">
                       <Button variant="outline" size="sm" onClick={() => handleViewOrder(order)}>

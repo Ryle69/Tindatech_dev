@@ -2,11 +2,12 @@ import { requireAdmin } from "@/utils/admin-middleware"
 import { createClient } from "@/utils/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package } from "lucide-react"
+import {cookies} from "next/headers";
 
 export default async function AnalyticsPage() {
     await requireAdmin()
 
-    const supabase = await createClient()
+    const supabase = await createClient(cookies())
 
     const [{ data: orders }, { data: products }, { count: totalCustomers }] = await Promise.all([
         supabase.from("Orders").select("total_amount, created_at, status"),
@@ -35,7 +36,7 @@ export default async function AnalyticsPage() {
                             <DollarSign className="h-8 w-8 text-green-600" />
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                                <p className="text-2xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</p>
+                                <p className="text-2xl font-bold text-gray-900">PHP{totalRevenue.toFixed(2)}</p>
                                 <div className="flex items-center text-sm text-green-600">
                                     <TrendingUp className="h-4 w-4 mr-1" />
                                     +12.5%
@@ -83,7 +84,7 @@ export default async function AnalyticsPage() {
                             <Package className="h-8 w-8 text-orange-600" />
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-600">Avg Order Value</p>
-                                <p className="text-2xl font-bold text-gray-900">${averageOrderValue.toFixed(2)}</p>
+                                <p className="text-2xl font-bold text-gray-900">PHP{averageOrderValue.toFixed(2)}</p>
                                 <div className="flex items-center text-sm text-red-600">
                                     <TrendingDown className="h-4 w-4 mr-1" />
                                     -2.1%
@@ -104,15 +105,15 @@ export default async function AnalyticsPage() {
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
                                 <span className="text-sm font-medium">This Month</span>
-                                <span className="text-lg font-bold">${(totalRevenue * 0.4).toFixed(2)}</span>
+                                <span className="text-lg font-bold">PHP{(totalRevenue * 0.4).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm font-medium">Last Month</span>
-                                <span className="text-lg font-bold">${(totalRevenue * 0.35).toFixed(2)}</span>
+                                <span className="text-lg font-bold">PHP{(totalRevenue * 0.35).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm font-medium">3 Months Ago</span>
-                                <span className="text-lg font-bold">${(totalRevenue * 0.25).toFixed(2)}</span>
+                                <span className="text-lg font-bold">PHP{(totalRevenue * 0.25).toFixed(2)}</span>
                             </div>
                         </div>
                     </CardContent>
@@ -131,7 +132,7 @@ export default async function AnalyticsPage() {
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm font-medium">Inventory Value</span>
-                                <span className="text-lg font-bold">${totalInventoryValue.toFixed(2)}</span>
+                                <span className="text-lg font-bold">PHP{totalInventoryValue.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm font-medium">Low Stock Items</span>

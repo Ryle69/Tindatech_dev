@@ -144,162 +144,158 @@ export default function HomePage() {
       .slice(0, 3)
 
   if (loading) {
-    return <div className="container px-4 py-8">Loading products...</div>
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex flex-col items-center space-y-4">
+            <Image
+                src="/logo.svg"
+                alt="Loading Logo"
+                width={64}
+                height={64}
+                className="animate-pulse"
+            />
+            <p className="text-gray-700 text-lg font-medium">Loading Page...</p>
+          </div>
+        </div>
+    )
   }
 
   return (
-    <div className="flex flex-col">
-      <section className="relative bg-[#d7d2ae] text-white">
-        <div className="container px-4 py-32 md:py-40">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <h1 className="text-4xl md:text-6xl font-bold leading-tight">Where Fashion Meets Affordability</h1>
-              <p className="text-xl text-gray-300 max-w-lg">
-                Trendsetting styles at prices that won’t break the bank, because looking good shouldn’t cost a fortune.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-white text-black hover:bg-gray-100">
-                  Shop Now
+      <div className="flex flex-col ">
+        <section
+            className="relative bg-cover bg-center bg-no-repeat text-white"
+            style={{ backgroundImage: "url('/inventory.jpg')" }}
+        >
+          <div className="bg-gradient-to-r from-black via-black/80 to-transparent absolute inset-0 z-0"></div>
+          <div className="relative container px-4 md:px-8 py-32 md:py-40 z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <h1 className="text-4xl md:text-6xl font-bold leading-tight">Where Fashion Meets Affordability</h1>
+                <p className="text-xl text-300 max-w-lg">
+                  Trendsetting styles at prices that won’t break the bank, because looking good shouldn’t cost a fortune.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button size="lg" className="bg-[#6CA539] text-white px-5 py-2 rounded-md transition duration-300 hover:bg-[#5a8e2d]">
+                    Shop Now
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button size="lg" className="bg-[#da6304] text-white px-5 py-2 rounded-md transition duration-300 hover:bg-[#c55a03]">
+                    View Collection
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="py-16 bg-[#da6304]">
+          <div className="container px-4 md:px-8">
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center space-y-4">
+                <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto">
+                  <Truck className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold">Free Shipping</h3>
+                <p className="text-gray-600">Free shipping on orders over ₱100</p>
+              </div>
+              <div className="text-center space-y-4">
+                <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto">
+                  <Shield className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold">Secure Payment</h3>
+                <p className="text-gray-600">Your payment information is safe</p>
+              </div>
+              <div className="text-center space-y-4">
+                <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto">
+                  <Headphones className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold">24/7 Support</h3>
+                <p className="text-gray-600">Get help whenever you need it</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Featured Products */}
+        <section className="py-16">
+          <div className="container px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Products</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">Discover our hand-picked selection of quality items</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {featuredProducts.map((product) => (
+                  <Card key={product.id} className="group cursor-pointer hover:shadow-lg transition-shadow">
+                    <CardContent className="p-0">
+                      <div className="relative">
+                        <Image
+                            src={product.image || "/placeholder.svg"}
+                            alt={product.name}
+                            width={300}
+                            height={300}
+                            className="w-full h-64 object-cover rounded-t-lg"
+                        />
+                        <Badge className="absolute top-4 left-4">{product.badge}</Badge>
+                      </div>
+                      <div className="p-6">
+                        <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="text-2xl font-bold">₱ {product.price}</span>
+                          {product.original_price && (
+                              <span className="text-gray-500 line-through">₱ {product.original_price}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 mb-4">
+                          {[...Array(5)].map((_, i) => (
+                              <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                      i < Math.floor(product.rating || 0)
+                                          ? "fill-yellow-400 text-yellow-400"
+                                          : "text-gray-300"
+                                  }`}
+                              />
+                          ))}
+                          <span className="text-sm text-gray-600 ml-2">({product.reviews} {product.reviews === 1 ? "Review" : "Reviews"})</span>
+                        </div>
+
+                        <Link href={`/product/${product.id}`}>
+                          <Button className="w-full">View Product</Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+              ))}
+            </div>
+
+            <div className="text-center mt-12">
+              <Link href="/storefront">
+                <Button size="lg" variant="ghost" className="bg-[#6CA539] hover:bg-[#6CA539]/90 hover:text-white text-white">
+                  View All Products
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black">
-                  View Collection
-                </Button>
-              </div>
-            </div>
-            <div className="relative">
-              <Image
-                src="/placeholder.svg?height=500&width=500"
-                alt="Hero Product"
-                width={500}
-                height={500}
-                className="rounded-lg shadow-2xl"
-              />
+              </Link>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="py-16 bg-[#D86304]/70">
-        <div className="container px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center space-y-4">
-              <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto">
-                <Truck className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold">Free Shipping</h3>
-              <p className="text-gray-600">Free shipping on orders over $100</p>
-            </div>
-            <div className="text-center space-y-4">
-              <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto">
-                <Shield className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold">Secure Payment</h3>
-              <p className="text-gray-600">Your payment information is safe</p>
-            </div>
-            <div className="text-center space-y-4">
-              <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto">
-                <Headphones className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold">24/7 Support</h3>
-              <p className="text-gray-600">Get help whenever you need it</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="py-16">
-        <div className="container px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Products</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">Discover our hand-picked selection of premium products</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredProducts.map((product) => (
-                <Card key={product.id} className="group cursor-pointer hover:shadow-lg transition-shadow">
-                  <CardContent className="p-0">
-                    <div className="relative">
-                      <Image
-                          src={product.image}
-                          alt={product.name}
-                          width={300}
-                          height={300}
-                          className="w-full h-64 object-cover rounded-t-lg"
-                      />
-                      {product.badge && <Badge className="absolute top-4 left-4">{product.badge}</Badge>}
-                    </div>
-                    <div className="p-6">
-                      <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl font-bold">${product.price}</span>
-                        {product.original_price && (
-                            <span className="text-gray-500 line-through">${product.original_price}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 mb-4">
-                        {[...Array(5)].map((_, i) => (
-                            <Star
-                                key={i}
-                                className={`h-4 w-4 ${i < Math.floor(product.rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
-                            />
-                        ))}
-                        <span className="text-sm text-gray-600 ml-2">({product.reviews})</span>
-                      </div>
-                      <Link href={`/product/${product.id}`}>
-                        <Button className="w-full">View Product</Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link href="/storefront">
-              <Button size="lg" variant="outline">
-                View All Products
-                <ArrowRight className="ml-2 h-4 w-4" />
+        <div className="text-center bg-[#da6304] p-12">
+          <h2 className="text-3xl font-bold mb-4 text-white">Get in Touch</h2>
+          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
+            Have questions, feedback, or just want to say hello? We'd love to hear from you! Reach out to us through any of the methods below.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="mailto:kiwangcherryl@gmail.com">
+              <Button size="lg" className="bg-black text-white">Contact Us</Button>
+            </a>
+            <Link href="/visit">
+              <Button size="lg" variant="ghost" className="bg-white">
+                Visit Our Store
               </Button>
             </Link>
           </div>
         </div>
-      </section>
-
-      {/* Social Media Call-to-Action */}
-      <section className="py-16 bg-[#D86304] text-white">
-        <div className="container px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Connect With Us</h2>
-          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-            Follow us on social media for the latest updates, new arrivals, and exclusive offers!
-          </p>
-          <div className="flex justify-center gap-6">
-            <a
-                href="https://www.facebook.com/profile.php?id=61571582326338"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-white text-[#D86304] hover:bg-gray-100 rounded-full p-3 transition-all hover:scale-110"
-                aria-label="Facebook"
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/>
-              </svg>
-            </a>
-            <a
-                href="https://www.instagram.com/_cherylls/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-white text-[#D86304] hover:bg-gray-100 rounded-full p-3 transition-all hover:scale-110"
-                aria-label="Instagram"
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-              </svg>
-            </a>
-          </div>
-        </div>
-      </section>
-    </div>
+      </div>
   )
 }

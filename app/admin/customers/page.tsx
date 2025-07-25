@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Mail, Calendar, Search } from "lucide-react"
 import { CustomerActions } from "./components/customer-actions"
+import {cookies} from "next/headers";
 
 export default async function CustomersPage({
                                               searchParams,
@@ -14,7 +15,7 @@ export default async function CustomersPage({
 }) {
   await requireAdmin()
 
-  const supabase = await createClient()
+  const supabase = await createClient(cookies())
   const searchTerm = searchParams.search || ""
 
   let query = supabase.from("Users").select("*").eq("role", "customer").order("created_at", { ascending: false })

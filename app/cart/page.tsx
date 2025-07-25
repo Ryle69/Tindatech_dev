@@ -4,10 +4,11 @@ import { createClient } from "@/utils/supabase/client"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react"
+import {Minus, Plus, Trash2, ShoppingCart, Loader2} from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/contexts/CartContext"
+import Image from "next/image";
 
 interface CartItem {
     id: number
@@ -26,6 +27,8 @@ export default function CartPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [isAuthenticated, setIsAuthenticated] = useState(false)
+    const [checkingOut, setCheckingOut] = useState(false)
+    const [shopRedirect, setShopRedirect] = useState(false)
     const supabase = createClient()
     const router = useRouter()
     const { updateCartCount } = useCart()
@@ -175,11 +178,16 @@ export default function CartPage() {
 
     if (loading) {
         return (
-            <div className="container px-4 py-8">
-                <div className="animate-pulse space-y-4">
-                    <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-                    <div className="h-32 bg-gray-200 rounded"></div>
-                    <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="flex flex-col items-center space-y-4">
+                    <Image
+                        src="/logo.svg"
+                        alt="Loading Logo"
+                        width={64}
+                        height={64}
+                        className="animate-pulse"
+                    />
+                    <p className="text-gray-700 text-lg font-medium">Loading Page...</p>
                 </div>
             </div>
         )
@@ -227,9 +235,24 @@ export default function CartPage() {
                     <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                     <h2 className="text-xl font-medium mb-2">Your cart is empty</h2>
                     <p className="text-gray-600 mb-6">Start shopping to add items to your cart</p>
-                    <Link href="/storefront">
-                        <Button>Continue Shopping</Button>
-                    </Link>
+                    <Button
+                        disabled = {shopRedirect}
+                        onClick={async () => {
+                            if (shopRedirect) return
+                            setShopRedirect(true)
+                            router.push("/storefront")
+                        }}
+                    >
+                        {shopRedirect ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Going Back to Shop...
+                            </>
+                        ) : (
+                            "Continue Shopping"
+                        )}
+                    </Button>
+
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -262,7 +285,7 @@ export default function CartPage() {
                                                 {item.color && <p className="text-sm text-gray-600">Color: {item.color}</p>}
                                             </div>
                                         </TableCell>
-                                        <TableCell>${item.product_price.toFixed(2)}</TableCell>
+                                        <TableCell>₱ {item.product_price.toFixed(2)}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <Button
@@ -283,7 +306,7 @@ export default function CartPage() {
                                                 </Button>
                                             </div>
                                         </TableCell>
-                                        <TableCell>${(item.product_price * item.quantity).toFixed(2)}</TableCell>
+                                        <TableCell>₱ {(item.product_price * item.quantity).toFixed(2)}</TableCell>
                                         <TableCell>
                                             <Button
                                                 variant="ghost"
@@ -304,7 +327,7 @@ export default function CartPage() {
                         <div className="space-y-4 mb-6">
                             <div className="flex justify-between">
                                 <span>Subtotal ({cartItems.length} items)</span>
-                                <span>${subtotal.toFixed(2)}</span>
+                                <span>₱ {subtotal.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Shipping</span>
@@ -312,14 +335,45 @@ export default function CartPage() {
                             </div>
                             <div className="flex justify-between font-bold text-lg pt-4 border-t">
                                 <span>Total</span>
-                                <span>${subtotal.toFixed(2)}</span>
+                                <span>₱ {subtotal.toFixed(2)}</span>
                             </div>
                         </div>
-                        <Button className="w-full mb-4" asChild>
-                            <Link href="/checkout">Proceed to Checkout</Link>
+                        <Button
+                            className="w-full mb-4"
+                            disabled={checkingOut}
+                            onClick={async () => {
+                                if (checkingOut) return
+                                setCheckingOut(true)
+                                router.push("/checkout")
+                            }}
+                        >
+                            {checkingOut ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Checking Out...
+                                </>
+                            ) : (
+                                "Proceed to Checkout"
+                            )}
                         </Button>
-                        <Button variant="outline" className="w-full" asChild>
-                            <Link href="/storefront">Continue Shopping</Link>
+                        <Button
+                            variant="outline"
+                            className="w-full"
+                            disabled = {shopRedirect}
+                            onClick={async () => {
+                                if (shopRedirect) return
+                                setShopRedirect(true)
+                                router.push("/storefront")
+                            }}
+                        >
+                            {shopRedirect ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Going Back to Shop...
+                                </>
+                            ) : (
+                                "Continue Shopping"
+                            )}
                         </Button>
                     </div>
                 </div>
