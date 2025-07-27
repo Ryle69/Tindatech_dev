@@ -1,7 +1,6 @@
-"use client";
 import React, { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
 interface OrderItem {
   id: number;
@@ -57,16 +56,16 @@ interface EmployeeOrderModal {
   onPaymentStatusChange: (paymentStatus: string) => void;
 }
 
-const statusOptions = [
-  "pending",
-  "confirmed",
-  "processing",
-  "shipped",
-  "delivered",
-  "cancelled",
+const statusOptions_2 = [
+  "Pending",
+  "Confirmed",
+  "Processing",
+  "Shipped",
+  "Delivered",
+  "Cancelled",
 ];
 
-const paymentStatusOptions = [
+const paymentStatusOptions_2 = [
   "unpaid",
   "pending",
   "paid",
@@ -197,7 +196,7 @@ export const EmployeeOrderModal: React.FC<EmployeeOrderModal> = ({
                 value={newStatus}
                 onChange={(e) => setNewStatus(e.target.value)}
             >
-              {statusOptions.map((status) => (
+              {statusOptions_2.map((status) => (
                   <option key={status} value={status}>
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                   </option>
@@ -223,7 +222,7 @@ export const EmployeeOrderModal: React.FC<EmployeeOrderModal> = ({
                 value={newPaymentStatus}
                 onChange={(e) => setNewPaymentStatus(e.target.value)}
             >
-              {paymentStatusOptions.map((status) => (
+              {paymentStatusOptions_2.map((status) => (
                   <option key={status} value={status}>
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                   </option>
