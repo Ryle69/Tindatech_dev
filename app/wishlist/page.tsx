@@ -12,29 +12,6 @@ import { Heart, ShoppingCart, Trash2, Star, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useCart } from '@/contexts/CartContext'
 
-// Supabase response type (matches actual return structure)
-interface SupabaseWishlistResponse {
-    id: number
-    product_id: number
-    created_at: string
-    Products: {
-        id: number
-        name: string
-        price: number
-        compare_price: number | null
-        image: string
-        badge: string | null
-        inventory_quantity: number
-        is_active: boolean
-        category_id: number | null
-        Categories: {
-            name: string
-        } | null
-        rating?: number
-        reviews?: number
-    }
-}
-
 interface WishlistItem {
     id: number
     product_id: number
@@ -52,6 +29,8 @@ interface WishlistItem {
             name: string
         }
         compare_price?: number
+        rating?: number
+        reviews?: number
     }
 }
 

@@ -27,8 +27,11 @@ interface Product {
     is_active: boolean
 }
 
-export default function StorefrontPage() {
-    const searchParams = useSearchParams()
+export default function StorefrontPage({
+    searchParams,
+}: {
+    searchParams: { [key: string]: string | string[] }
+}) {
     const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState(true)
     const [loadingProductId, setLoadingProductId] = useState<number | null>(null)
@@ -40,9 +43,8 @@ export default function StorefrontPage() {
     const [categories, setCategories] = useState<string[]>([])
     const router = useRouter()
 
-    // Initialize search query from URL params
     useEffect(() => {
-        const urlSearchQuery = searchParams.get('search')
+        const urlSearchQuery = searchParams.search as string
         if (urlSearchQuery) {
             setSearchQuery(urlSearchQuery)
         }
@@ -96,7 +98,6 @@ export default function StorefrontPage() {
                 )
                 setCategories(uniqueCategories)
 
-                // Fetch reviews count for each product
                 const productsWithReviews = await Promise.all(
                     productsData.map(async (product: any) => {
                         const { data: orderItems } = await supabase

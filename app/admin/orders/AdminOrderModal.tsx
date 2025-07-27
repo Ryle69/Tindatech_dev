@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import React, {useState} from "react";
 
 interface OrderItem {
   id: number;
@@ -51,28 +51,28 @@ interface AdminOrderModalProps {
   order: Order;
   orderItems: OrderItem[];
   open: boolean;
-  onClose: () => void;
-  onStatusChange: (status: string) => void;
-  onDelete: () => void;
-  onPaymentStatusChange: (paymentStatus: string) => void;
+  onCloseAction: () => void;
+  onStatusChangeAction: (status: string) => void;
+  onDeleteAction: () => void;
+  onPaymentStatusChangeAction: (paymentStatus: string) => void;
 }
 
-const statusOptions = [
+const statusOptions_1 = [
   "pending",
   "confirmed",
   "processing",
   "shipped",
   "delivered",
   "cancelled",
-];
+]
 
-const paymentStatusOptions = [
+const paymentStatusOptions_1 = [
   "unpaid",
   "pending",
   "paid",
   "refunded",
   "failed",
-];
+]
 
 // Helper function to parse shipping address
 const parseShippingAddress = (address: any): ShippingAddress => {
@@ -99,10 +99,10 @@ export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
   order,
   orderItems,
   open,
-  onClose,
-  onStatusChange,
-  onDelete,
-  onPaymentStatusChange,
+  onCloseAction,
+  onStatusChangeAction,
+  onDeleteAction,
+  onPaymentStatusChangeAction,
 }) => {
   const [newStatus, setNewStatus] = useState(order.status);
   const [newPaymentStatus, setNewPaymentStatus] = useState(order.payment_status || "unpaid");
@@ -116,7 +116,7 @@ export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
       <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
         <button
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-          onClick={onClose}
+          onClick={onCloseAction}
         >
           ×
         </button>
@@ -197,7 +197,7 @@ export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
             value={newStatus}
             onChange={(e) => setNewStatus(e.target.value)}
           >
-            {statusOptions.map((status) => (
+            {statusOptions_1.map((status) => (
               <option key={status} value={status}>
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </option>
@@ -209,7 +209,7 @@ export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
             disabled={loading || newStatus === order.status}
             onClick={async () => {
               setLoading(true);
-              await onStatusChange(newStatus);
+              await onStatusChangeAction(newStatus);
               setLoading(false);
             }}
           >
@@ -223,7 +223,7 @@ export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
             value={newPaymentStatus}
             onChange={(e) => setNewPaymentStatus(e.target.value)}
           >
-            {paymentStatusOptions.map((status) => (
+            {paymentStatusOptions_1.map((status) => (
               <option key={status} value={status}>
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </option>
@@ -235,7 +235,7 @@ export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
             disabled={loading || newPaymentStatus === order.payment_status}
             onClick={async () => {
               setLoading(true);
-              await onPaymentStatusChange(newPaymentStatus);
+              await onPaymentStatusChangeAction(newPaymentStatus);
               setLoading(false);
             }}
           >
@@ -243,7 +243,7 @@ export const AdminOrderModal: React.FC<AdminOrderModalProps> = ({
           </Button>
         </div>
         <div className="flex gap-2 mt-2">
-          <Button variant="destructive" size="sm" onClick={onDelete}>
+          <Button variant="destructive" size="sm" onClick={onDeleteAction}>
             Delete Order
           </Button>
           {/* Add more admin actions here if needed */}

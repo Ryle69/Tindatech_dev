@@ -250,10 +250,10 @@ export default function OrdersClient({ orders, searchTerm = "", statusFilter = "
           order={selectedOrder}
           orderItems={orderItems}
           open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          onStatusChange={handleStatusChange}
-          onDelete={handleDeleteOrder}
-          onPaymentStatusChange={handlePaymentStatusChange}
+          onCloseAction={() => setModalOpen(false)}
+          onStatusChangeAction={handleStatusChange}
+          onDeleteAction={handleDeleteOrder}
+          onPaymentStatusChangeAction={handlePaymentStatusChange}
         />
       )}
     </div>

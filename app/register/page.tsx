@@ -23,7 +23,6 @@ function RegisterForm() {
   async function handleSubmit(formData: FormData) {
     setIsSubmitting(true)
     try {
-      // Add role to form data
       formData.set("role", selectedRole)
       await register(formData)
     } catch (error) {
@@ -95,18 +94,7 @@ function RegisterForm() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="role">Account Type *</Label>
-                  <Select value={selectedRole} onValueChange={setSelectedRole} disabled={isSubmitting}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select account type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="customer">Customer</SelectItem>
-                      <SelectItem value="admin">Business Manager</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+
 
                 <div className="space-y-2">
                   <Label htmlFor="password">Password *</Label>
